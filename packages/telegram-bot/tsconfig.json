@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2019",
+    "module": "Node16",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "lib": ["esnext"],
+    "resolveJsonModule": true,
+    "jsx": "react",
+    "esModuleInterop": true,
+    "baseUrl": "."
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["**/node_modules/*", "dist"]
+}
