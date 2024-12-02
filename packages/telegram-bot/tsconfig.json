@@ -10,7 +10,7 @@
     "resolveJsonModule": true,
     "jsx": "react",
     "esModuleInterop": true,
-    "baseUrl": "."
+    "baseUrl": "./src"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["**/node_modules/*", "dist"]

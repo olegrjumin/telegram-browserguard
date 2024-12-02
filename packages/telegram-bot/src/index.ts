@@ -1,6 +1,6 @@
-import { config, isDevelopment } from "./config";
 import { bot } from "./core/bot";
 import { startServer } from "./core/server";
+import { config, isDevelopment } from "./project-config";
 
 async function start() {
   if (isDevelopment()) {

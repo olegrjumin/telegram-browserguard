@@ -1,6 +1,6 @@
 import { Telegraf, session } from "telegraf";
-import { config, isDevelopment } from "../config";
 import { urlHandler } from "../handlers/url.handler";
+import { config, isDevelopment } from "../project-config";
 import { BotContext } from "../types";
 
 const bot = new Telegraf<BotContext>(config.BOT_TOKEN);
@@ -29,6 +29,7 @@ bot.command("help", async (ctx) => {
 // @ts-ignore
 bot.on("inline_query", async (ctx) => {
   const query = ctx.inlineQuery.query || "no query";
+
   await ctx.answerInlineQuery([
     {
       type: "article",

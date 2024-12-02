@@ -1,5 +1,5 @@
 import express from "express";
-import { config } from "../config";
+import { config } from "../project-config";
 import { bot } from "./bot";
 
 const app = express();

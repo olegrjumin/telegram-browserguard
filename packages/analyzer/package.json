@@ -1,9 +1,22 @@
 {
   "name": "analyzer",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "dev": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only src/index.ts"
+  },
+  "dependencies": {
+    "@sparticuz/chromium": "^131.0.1",
+    "dotenv": "16.4.5",
+    "express": "4.21.1",
+    "puppeteer-core": "^23.9.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.1",
+    "@types/puppeteer": "^7.0.4",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.2",
+    "cross-env": "^7.0.3"
   }
 }
