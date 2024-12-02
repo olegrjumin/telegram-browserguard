@@ -1,5 +1,5 @@
+import { BotContext } from "types";
 import { getScreenshot } from "../core/api";
-import { BotContext } from "../types";
 
 function extractUrl(text: string) {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -13,9 +13,7 @@ function containsUrl(text: string): boolean {
 
 export const urlHandler =
   () => async (ctx: BotContext, next: () => Promise<void>) => {
-    // @ts-ignore
     if (ctx.message && "text" in ctx.message && ctx.message.text) {
-      // @ts-ignore
       const query = ctx.message.text;
 
       if (!query || !containsUrl(query)) {
@@ -25,7 +23,6 @@ export const urlHandler =
       const { buffer } = await getScreenshot(query);
 
       if (buffer) {
-        // @ts-ignore
         await ctx.replyWithPhoto({ source: buffer });
       }
     }
