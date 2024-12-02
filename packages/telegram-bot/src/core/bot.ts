@@ -1,14 +1,13 @@
 import { Telegraf, session } from "telegraf";
+import { BotContext } from "types";
 import { urlHandler } from "../handlers/url.handler";
 import { config, isDevelopment } from "../project-config";
-import { BotContext } from "../types";
 
 const bot = new Telegraf<BotContext>(config.BOT_TOKEN);
 
 bot.use(session());
 
-// @ts-ignore
-bot.catch((err, ctx) => {
+bot.catch((err: Error, ctx: BotContext) => {
   if (isDevelopment()) {
     ctx.reply("Error: " + err);
   } else {
@@ -16,18 +15,15 @@ bot.catch((err, ctx) => {
   }
 });
 
-// @ts-ignore
-bot.command("start", async (ctx) => {
+bot.command("start", async (ctx: BotContext) => {
   await ctx.reply("Hello World!");
 });
 
-// @ts-ignore
-bot.command("help", async (ctx) => {
+bot.command("help", async (ctx: BotContext) => {
   await ctx.reply("Help message");
 });
 
-// @ts-ignore
-bot.on("inline_query", async (ctx) => {
+bot.on("inline_query", async (ctx: BotContext) => {
   const query = ctx.inlineQuery.query || "no query";
 
   await ctx.answerInlineQuery([
