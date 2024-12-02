@@ -13,6 +13,10 @@ export async function getScreenshot(
     body: JSON.stringify({ url: query }),
   });
 
-  const result = (await response.json()) as ScreenshotAPIResponse;
-  return result;
+  const result = (await response.json()) as {
+    screenshot: string;
+    metrics: any;
+  };
+  const buffer = Buffer.from(result.screenshot, "base64");
+  return { buffer };
 }

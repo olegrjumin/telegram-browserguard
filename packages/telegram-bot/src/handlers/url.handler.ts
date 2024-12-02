@@ -22,12 +22,11 @@ export const urlHandler =
         return next();
       }
 
-      const data = await getScreenshot(query);
-      console.log("🚀 ~ bot.on ~ response:", data);
+      const { buffer } = await getScreenshot(query);
 
-      if (data.screenshot) {
+      if (buffer) {
         // @ts-ignore
-        await ctx.replyWithPhoto({ source: data.screenshot });
+        await ctx.replyWithPhoto({ source: buffer });
       }
     }
   };
