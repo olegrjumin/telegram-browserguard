@@ -9,7 +9,8 @@ export async function getScreenshot({
   url: string;
 }): Promise<{
   buffer: ScreenshotAPIResponse["imageBuffer"];
-  contentAnalysis: any;
+  contentAnalysis: ScreenshotAPIResponse["contentAnalysis"];
+  redirectAnalysis: ScreenshotAPIResponse["redirectAnalysis"];
 }> {
   const response = await fetch(`${config.ANALYZER_API_URL}/screenshot`, {
     method: "POST",
@@ -21,9 +22,9 @@ export async function getScreenshot({
 
   const result = (await response.json()) as ScreenshotAPIResponse;
 
-  console.log(result);
   return {
     buffer: Buffer.from(result.imageBuffer),
     contentAnalysis: result.contentAnalysis,
+    redirectAnalysis: result.redirectAnalysis,
   };
 }

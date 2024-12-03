@@ -2,8 +2,9 @@ import { config, isStorageEnabled } from "@/project-config";
 import puppeteer, { Browser, Page } from "puppeteer-core";
 import { OpenAIClient } from "../../lib/openai-client";
 import { ContentAnalyzer } from "../analysis/content-analyzer";
+import { RedirectAnalyzer } from "../analysis/redirect-analyzer";
+import { RequestMonitor } from "../analysis/request-monitor";
 import { storage } from "../storage";
-import { shouldBlockRequest } from "./blocking-rules";
 import { browserConfig } from "./browser-config";
 import { waitForLoadingComplete } from "./loading-detector";
 import { SupportedFormat } from "./types";
@@ -17,6 +18,8 @@ export interface ExtractedContent {
 
 export class BrowserManager {
   private static instance: BrowserManager;
+  private requestMonitor: RequestMonitor;
+  private redirectAnalyzer: RedirectAnalyzer;
   private contentAnalyzer: ContentAnalyzer;
   private openai: OpenAIClient;
   private browser: Browser | null;
@@ -26,6 +29,9 @@ export class BrowserManager {
   constructor() {
     this.openai = new OpenAIClient(config.OPENAI_API_KEY);
     this.contentAnalyzer = new ContentAnalyzer(this.openai);
+    this.redirectAnalyzer = new RedirectAnalyzer();
+    this.requestMonitor = new RequestMonitor();
+
     this.browser = null;
     this.isInitializing = false;
     this.initPromise = null;
@@ -117,9 +123,12 @@ export class BrowserManager {
       browserConfig.navigation.timeout || 15000
     );
     await page.setCacheEnabled(false);
+    await this.redirectAnalyzer.attachToPage(page);
+    this.requestMonitor.attachToPage(page);
   }
 
   async navigateWithRetry(page: Page, url: string) {
+    this.redirectAnalyzer.startTracking(url);
     try {
       console.log(`Navigating to ${url}`);
       await page.goto(url, browserConfig.navigation);
@@ -142,6 +151,21 @@ export class BrowserManager {
         checkInterval: 100,
       });
     }
+
+    await this.redirectAnalyzer.checkMetaRefresh(page);
+  }
+
+  private async uploadScreenshot(
+    buffer: Buffer,
+    userId: number,
+    format: SupportedFormat
+  ): Promise<string | undefined> {
+    if (!isStorageEnabled()) return undefined;
+
+    const filePath = `users/${userId}/${Date.now()}.${format}`;
+    const { url: blob_url } = await storage.upload(filePath, buffer);
+    console.log(`Uploaded screenshot to ${blob_url}`);
+    return blob_url;
   }
 
   async extractContent(page: Page): Promise<ExtractedContent> {
@@ -164,60 +188,27 @@ export class BrowserManager {
     userId: number
   ) {
     let page = null;
-    let metrics = { requests: { blocked: 0, allowed: 0, total: 0 } };
 
     try {
       await this.initBrowser();
-      if (!this.browser) {
-        throw new Error("Browser failed to initialize");
-      }
-      page = await this.browser.newPage();
+      page = await this.browser!.newPage(); // "!" because browser is initialized
       await this.setupPage(page);
-
-      page.on("request", (request) => {
-        if (shouldBlockRequest(request.url())) {
-          metrics.requests.blocked++;
-          request.abort();
-        } else {
-          metrics.requests.allowed++;
-          request.continue();
-        }
-      });
-
       await this.navigateWithRetry(page, url);
 
       const imageBuffer = (await page.screenshot(
         browserConfig.getScreenshotOptions(format, quality)
       )) as Buffer;
 
-      let blobUrl: string | undefined;
-
-      if (isStorageEnabled()) {
-        const filePath = `users/${userId}/${Date.now()}.${format}`;
-        const { url: blob_url } = await storage.upload(filePath, imageBuffer);
-        console.log(`Uploaded screenshot to ${blob_url}`);
-        blobUrl = blob_url;
-      }
-
+      const blobUrl = await this.uploadScreenshot(imageBuffer, userId, format);
       const content = await this.extractContent(page);
-      let contentAnalysis = null;
-
-      try {
-        contentAnalysis = await this.contentAnalyzer.analyze(content);
-      } catch (error) {
-        console.error("Content analysis failed:", error);
-        contentAnalysis = this.contentAnalyzer.getDefaultAnalysis();
-      }
-
-      metrics.requests.total =
-        metrics.requests.blocked + metrics.requests.allowed;
-      console.log(metrics);
+      const contentAnalysis = await this.contentAnalyzer.analyze(content);
 
       return {
         imageBuffer: Array.from(new Uint8Array(imageBuffer)),
-        metrics,
+        metrics: { requests: this.requestMonitor.getMetrics() },
         blobUrl,
         contentAnalysis,
+        redirectAnalysis: this.redirectAnalyzer.getAnalysis(page.url()),
       };
     } finally {
       if (page) {
@@ -225,6 +216,8 @@ export class BrowserManager {
           await page.close();
         } catch (e) {
           console.error("Error closing page:", e);
+        } finally {
+          this.requestMonitor.reset();
         }
       }
     }
