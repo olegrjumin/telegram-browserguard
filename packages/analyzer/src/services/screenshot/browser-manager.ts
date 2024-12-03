@@ -1,32 +1,113 @@
+import { config, isStorageEnabled } from "@/project-config";
 import puppeteer, { Browser, Page } from "puppeteer-core";
-
-import { isStorageEnabled } from "../../project-config";
-import { storage } from "../../services/storage";
+import { OpenAIClient } from "../../lib/openai-client";
+import { ContentAnalyzer } from "../analysis/content-analyzer";
+import { storage } from "../storage";
 import { shouldBlockRequest } from "./blocking-rules";
 import { browserConfig } from "./browser-config";
 import { waitForLoadingComplete } from "./loading-detector";
 import { SupportedFormat } from "./types";
 
+export interface ExtractedContent {
+  title: string;
+  metaDescription: string;
+  mainContent: string;
+  links: string[];
+}
+
 export class BrowserManager {
-  public browser: Browser | null;
+  private static instance: BrowserManager;
+  private contentAnalyzer: ContentAnalyzer;
+  private openai: OpenAIClient;
+  private browser: Browser | null;
+  private isInitializing: boolean;
+  private initPromise: Promise<Browser> | null;
+
   constructor() {
+    this.openai = new OpenAIClient(config.OPENAI_API_KEY);
+    this.contentAnalyzer = new ContentAnalyzer(this.openai);
     this.browser = null;
+    this.isInitializing = false;
+    this.initPromise = null;
+
+    // Handle process termination
+    process.on("SIGTERM", this.cleanup);
+    process.on("SIGINT", this.cleanup);
+    process.on("beforeExit", this.cleanup);
+    process.on("exit", this.cleanup);
+
+    if (process.send) {
+      // Handle ts-node-dev restart
+      process.on("message", async (message) => {
+        if (message === "restart") {
+          await this.cleanup();
+        }
+      });
+    }
   }
 
-  async initBrowser() {
-    if (!this.browser) {
-      try {
-        const options = await browserConfig.getBrowserConfig();
-        console.log(
-          `Launching browser with executable: ${options.executablePath}`
-        );
-        this.browser = await puppeteer.launch(options);
-      } catch (error) {
-        console.error("Browser initialization failed:", error);
-        throw error;
-      }
+  static getInstance(): BrowserManager {
+    if (!BrowserManager.instance) {
+      BrowserManager.instance = new BrowserManager();
     }
-    return this.browser;
+    return BrowserManager.instance;
+  }
+
+  private cleanup = async () => {
+    try {
+      if (this.browser) {
+        const browserProcess = this.browser.process();
+        if (browserProcess) {
+          browserProcess.kill("SIGTERM");
+        }
+        await this.browser.close();
+        this.browser = null;
+      }
+    } catch (e) {
+      console.error("Cleanup error:", e);
+    }
+  };
+
+  private async createBrowser(): Promise<Browser> {
+    const options = await browserConfig.getBrowserConfig();
+    console.log(`Launching browser with executable: ${options.executablePath}`);
+    return puppeteer.launch(options);
+  }
+
+  private isBrowserConnected(): boolean {
+    return !!(this.browser && this.browser.process()?.connected);
+  }
+
+  async initBrowser(): Promise<Browser> {
+    if (this.browser && this.isBrowserConnected()) {
+      return this.browser;
+    }
+
+    if (this.isInitializing) {
+      return this.initPromise!;
+    }
+
+    this.isInitializing = true;
+    this.initPromise = this.createBrowser()
+      .then((browser) => {
+        this.browser = browser;
+        browser.on("disconnected", () => {
+          this.browser = null;
+          this.isInitializing = false;
+          this.initPromise = null;
+        });
+        return browser;
+      })
+      .catch((error) => {
+        this.isInitializing = false;
+        this.initPromise = null;
+        throw error;
+      })
+      .finally(() => {
+        this.isInitializing = false;
+      });
+
+    return this.initPromise;
   }
 
   async setupPage(page: Page) {
@@ -63,8 +144,17 @@ export class BrowserManager {
     }
   }
 
-  private getMimeType(format: SupportedFormat): string {
-    return `image/${format}`;
+  async extractContent(page: Page): Promise<ExtractedContent> {
+    const content = await page.evaluate(() => ({
+      title: document.title,
+      metaDescription:
+        (document.querySelector('meta[name="description"]') as HTMLMetaElement)
+          ?.content || "",
+      mainContent: document.body.innerText.substring(0, 3000),
+      links: Array.from(document.querySelectorAll("a")).map((a) => a.href),
+    }));
+
+    return content;
   }
 
   async takeScreenshot(
@@ -109,6 +199,16 @@ export class BrowserManager {
         blobUrl = blob_url;
       }
 
+      const content = await this.extractContent(page);
+      let contentAnalysis = null;
+
+      try {
+        contentAnalysis = await this.contentAnalyzer.analyze(content);
+      } catch (error) {
+        console.error("Content analysis failed:", error);
+        contentAnalysis = this.contentAnalyzer.getDefaultAnalysis();
+      }
+
       metrics.requests.total =
         metrics.requests.blocked + metrics.requests.allowed;
       console.log(metrics);
@@ -117,20 +217,35 @@ export class BrowserManager {
         imageBuffer: Array.from(new Uint8Array(imageBuffer)),
         metrics,
         blobUrl,
+        contentAnalysis,
       };
     } finally {
-      if (page) await page.close();
+      if (page) {
+        try {
+          await page.close();
+        } catch (e) {
+          console.error("Error closing page:", e);
+        }
+      }
     }
   }
 
   async close() {
     if (this.browser) {
-      await this.browser.close();
+      try {
+        await this.browser.close();
+      } catch (e) {
+        console.error("Error closing browser:", e);
+      }
       this.browser = null;
+      this.isInitializing = false;
+      this.initPromise = null;
     }
   }
 
   resetBrowser() {
-    this.browser = null;
+    this.close().catch(console.error);
   }
 }
+
+export const browserManager = BrowserManager.getInstance();
