@@ -8,5 +8,13 @@ export interface Bot extends BotContext {
 }
 
 export interface ScreenshotAPIResponse {
-  buffer: Buffer;
+  imageBuffer: Buffer;
+  blobUrl: string;
+  metrics: {
+    requests: {
+      blocked: number;
+      allowed: number;
+      total: number;
+    };
+  };
 }

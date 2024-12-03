@@ -11,22 +11,24 @@ app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 app.post("/screenshot", async (req: Request, res: Response) => {
   try {
-    const { url, format = "jpeg", quality = 60 } = req.body;
+    const { url, format = "png", quality = 60, userId } = req.body;
+
+    if (!userId || typeof userId !== "number") {
+      return res.status(400).json({ error: "User ID is required" });
+    }
 
     if (!url) {
       return res.status(400).json({ error: "URL is required" });
     }
 
-    const { screenshot, metrics } = await browserManager.takeScreenshot(
+    const response = await browserManager.takeScreenshot(
       url,
       format,
-      quality
+      quality,
+      userId
     );
 
-    res.json({
-      screenshot,
-      metrics,
-    });
+    res.json(response);
   } catch (error) {
     console.error("Screenshot error:", error);
 

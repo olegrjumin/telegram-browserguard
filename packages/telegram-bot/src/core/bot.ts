@@ -24,23 +24,13 @@ bot.command("help", async (ctx: BotContext) => {
 });
 
 bot.on("inline_query", async (ctx: BotContext) => {
-  const query = ctx.inlineQuery.query || "no query";
-
-  await ctx.answerInlineQuery([
+  const query = ctx.inlineQuery.query;
+  return ctx.answerInlineQuery([
     {
       type: "article",
       id: "1",
       title: "Click here to get a report",
-      description: "This will analyze provided link",
-      input_message_content: {
-        message_text: `🔍 Report for: "${query}"\n`,
-        parse_mode: "HTML",
-      },
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: "Check full report", url: "https://example.com" }],
-        ],
-      },
+      description: `Analyze: ${query}`,
     },
   ]);
 });
