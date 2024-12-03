@@ -1,4 +1,7 @@
 import puppeteer, { Browser, Page } from "puppeteer-core";
+
+import { isStorageEnabled } from "../../project-config";
+import { storage } from "../../services/storage";
 import { shouldBlockRequest } from "./blocking-rules";
 import { browserConfig } from "./browser-config";
 import { waitForLoadingComplete } from "./loading-detector";
@@ -66,8 +69,9 @@ export class BrowserManager {
 
   async takeScreenshot(
     url: string,
-    format: SupportedFormat = "jpeg",
-    quality = 60
+    format: SupportedFormat = "png",
+    quality = 60,
+    userId: number
   ) {
     let page = null;
     let metrics = { requests: { blocked: 0, allowed: 0, total: 0 } };
@@ -92,15 +96,28 @@ export class BrowserManager {
 
       await this.navigateWithRetry(page, url);
 
-      const screenshot = await page.screenshot(
+      const imageBuffer = (await page.screenshot(
         browserConfig.getScreenshotOptions(format, quality)
-      );
+      )) as Buffer;
+
+      let blobUrl: string | undefined;
+
+      if (isStorageEnabled()) {
+        const filePath = `users/${userId}/${Date.now()}.${format}`;
+        const { url: blob_url } = await storage.upload(filePath, imageBuffer);
+        console.log(`Uploaded screenshot to ${blob_url}`);
+        blobUrl = blob_url;
+      }
 
       metrics.requests.total =
         metrics.requests.blocked + metrics.requests.allowed;
       console.log(metrics);
 
-      return { screenshot, metrics };
+      return {
+        imageBuffer: Array.from(new Uint8Array(imageBuffer)),
+        metrics,
+        blobUrl,
+      };
     } finally {
       if (page) await page.close();
     }

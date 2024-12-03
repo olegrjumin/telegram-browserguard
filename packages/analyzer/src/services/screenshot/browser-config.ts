@@ -101,7 +101,7 @@ const getScreenshotOptions = (
   quality = 60
 ): ScreenshotOptions => ({
   fullPage: false,
-  encoding: "base64",
+  encoding: "binary",
   type: format,
   quality: format === "jpeg" ? quality : undefined,
   omitBackground: false,

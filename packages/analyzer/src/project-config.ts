@@ -14,11 +14,16 @@ function requireEnv(name: string): string {
 interface Config {
   PORT: number;
   NODE_ENV: "development" | "production";
+  BLOB_READ_WRITE_TOKEN: string;
+  ENABLE_STORAGE: boolean;
 }
 
 export const config: Config = {
   PORT: parseInt(process.env.PORT || "3001", 10),
   NODE_ENV: (process.env.NODE_ENV || "development") as Config["NODE_ENV"],
+  BLOB_READ_WRITE_TOKEN: requireEnv("BLOB_READ_WRITE_TOKEN"),
+  ENABLE_STORAGE: requireEnv("ENABLE_STORAGE") === "true",
 };
 
 export const isDevelopment = () => config.NODE_ENV === "development";
+export const isStorageEnabled = () => config.ENABLE_STORAGE;

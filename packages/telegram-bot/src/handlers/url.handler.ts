@@ -37,7 +37,10 @@ async function processUrl(task: Task) {
   const { ctx, url } = task;
   try {
     const statusMessage = await ctx.reply(`🔄 Processing: ${url}`);
-    const { buffer } = await getScreenshot(url);
+    const { buffer } = await getScreenshot({
+      url,
+      userId: ctx.message!.from.id,
+    });
 
     if (buffer) {
       await ctx.replyWithPhoto({ source: buffer });
