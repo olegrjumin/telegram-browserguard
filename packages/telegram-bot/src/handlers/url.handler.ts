@@ -1,8 +1,8 @@
+import { getScreenshot } from "@/core/api";
+import { BotContext } from "@/types";
 import type { queueAsPromised } from "fastq";
 import fastq from "fastq";
 import { RateLimiter } from "limiter";
-import { BotContext } from "types";
-import { getScreenshot } from "../core/api";
 
 const userLimiters = new Map<number, RateLimiter>();
 const RATE_LIMIT = 5;

@@ -1,7 +1,7 @@
+import { urlHandler } from "@/handlers/url.handler";
+import { config, isDevelopment } from "@/project-config";
+import { BotContext } from "@/types";
 import { Telegraf, session } from "telegraf";
-import { BotContext } from "types";
-import { urlHandler } from "../handlers/url.handler";
-import { config, isDevelopment } from "../project-config";
 
 const bot = new Telegraf<BotContext>(config.BOT_TOKEN);
 

@@ -7,7 +7,7 @@ const browserManager = new BrowserManager();
 
 app.use(express.json());
 
-app.get("/health", (req, res) => res.json({ status: "ok" }));
+app.get("/health", (_, res) => res.json({ status: "ok" }));
 
 app.post("/screenshot", async (req: Request, res: Response) => {
   try {

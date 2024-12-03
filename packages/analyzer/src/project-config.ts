@@ -16,6 +16,7 @@ interface Config {
   NODE_ENV: "development" | "production";
   BLOB_READ_WRITE_TOKEN: string;
   ENABLE_STORAGE: boolean;
+  OPENAI_API_KEY: string;
 }
 
 export const config: Config = {
@@ -23,6 +24,7 @@ export const config: Config = {
   NODE_ENV: (process.env.NODE_ENV || "development") as Config["NODE_ENV"],
   BLOB_READ_WRITE_TOKEN: requireEnv("BLOB_READ_WRITE_TOKEN"),
   ENABLE_STORAGE: requireEnv("ENABLE_STORAGE") === "true",
+  OPENAI_API_KEY: requireEnv("OPENAI_API_KEY"),
 };
 
 export const isDevelopment = () => config.NODE_ENV === "development";
