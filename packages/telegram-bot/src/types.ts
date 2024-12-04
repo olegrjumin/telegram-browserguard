@@ -35,3 +35,11 @@ export interface ScreenshotAPIResponse {
   contentAnalysis: ContentAnalysis;
   blobUrl: string;
 }
+
+export interface UnifiedReport {
+  url: string;
+  timestamp: number;
+  screenshotBase64: string;
+  contentAnalysis: ContentAnalysis;
+  redirectAnalysis: RedirectAnalysis;
+}

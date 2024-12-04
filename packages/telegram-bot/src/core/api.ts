@@ -11,6 +11,7 @@ export async function getScreenshot({
   buffer: ScreenshotAPIResponse["imageBuffer"];
   contentAnalysis: ScreenshotAPIResponse["contentAnalysis"];
   redirectAnalysis: ScreenshotAPIResponse["redirectAnalysis"];
+  blobUrl: ScreenshotAPIResponse["blobUrl"];
 }> {
   const response = await fetch(`${config.ANALYZER_API_URL}/screenshot`, {
     method: "POST",
@@ -26,5 +27,6 @@ export async function getScreenshot({
     buffer: Buffer.from(result.imageBuffer),
     contentAnalysis: result.contentAnalysis,
     redirectAnalysis: result.redirectAnalysis,
+    blobUrl: result.blobUrl,
   };
 }

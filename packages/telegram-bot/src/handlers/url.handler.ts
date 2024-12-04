@@ -55,10 +55,11 @@ async function processUrl(task: Task) {
   const { ctx, url } = task;
   try {
     const statusMessage = await ctx.reply(`🔄 Processing: ${url}`);
-    const { buffer, contentAnalysis, redirectAnalysis } = await getScreenshot({
-      url,
-      userId: ctx.message!.from.id,
-    });
+    const { buffer, contentAnalysis, redirectAnalysis, blobUrl } =
+      await getScreenshot({
+        url,
+        userId: ctx.message!.from.id,
+      });
 
     if (buffer) {
       await ctx.replyWithPhoto({ source: buffer });
@@ -87,7 +88,7 @@ async function processUrl(task: Task) {
       await ctx.reply(analysisMessage, {
         parse_mode: "Markdown",
         disable_web_page_preview: true,
-        ...createMiniAppButton(url),
+        ...createMiniAppButton(blobUrl),
       });
     }
 
