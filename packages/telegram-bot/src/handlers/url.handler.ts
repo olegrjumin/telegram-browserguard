@@ -1,4 +1,5 @@
 import { getScreenshot } from "@/core/api";
+import { config } from "@/project-config";
 import { BotContext } from "@/types";
 import type { queueAsPromised } from "fastq";
 import fastq from "fastq";
@@ -31,6 +32,23 @@ function getUserLimiter(userId: number): RateLimiter {
     );
   }
   return userLimiters.get(userId)!;
+}
+
+function createMiniAppButton(url: string) {
+  return {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: "📊 View Detailed Analysis",
+            web_app: {
+              url: `${config.MINI_APP_URL}?url=${encodeURIComponent(url)}`,
+            },
+          },
+        ],
+      ],
+    },
+  };
 }
 
 async function processUrl(task: Task) {
@@ -69,6 +87,7 @@ async function processUrl(task: Task) {
       await ctx.reply(analysisMessage, {
         parse_mode: "Markdown",
         disable_web_page_preview: true,
+        ...createMiniAppButton(url),
       });
     }
 

@@ -1,4 +1,5 @@
 import { config, isStorageEnabled } from "@/project-config";
+import { ContentAnalysis, RedirectAnalysis, UnifiedReport } from "@/types";
 import puppeteer, { Browser, Page } from "puppeteer-core";
 import { OpenAIClient } from "../../lib/openai-client";
 import { ContentAnalyzer } from "../analysis/content-analyzer";
@@ -155,19 +156,6 @@ export class BrowserManager {
     await this.redirectAnalyzer.checkMetaRefresh(page);
   }
 
-  private async uploadScreenshot(
-    buffer: Buffer,
-    userId: number,
-    format: SupportedFormat
-  ): Promise<string | undefined> {
-    if (!isStorageEnabled()) return undefined;
-
-    const filePath = `users/${userId}/${Date.now()}.${format}`;
-    const { url: blob_url } = await storage.upload(filePath, buffer);
-    console.log(`Uploaded screenshot to ${blob_url}`);
-    return blob_url;
-  }
-
   async extractContent(page: Page): Promise<ExtractedContent> {
     const content = await page.evaluate(() => ({
       title: document.title,
@@ -179,6 +167,34 @@ export class BrowserManager {
     }));
 
     return content;
+  }
+
+  private async uploadReport({
+    imageBuffer,
+    userId,
+    contentAnalysis,
+    redirectAnalysis,
+  }: {
+    imageBuffer: Buffer;
+    userId: number;
+    contentAnalysis: ContentAnalysis;
+    redirectAnalysis: RedirectAnalysis;
+  }): Promise<string | undefined> {
+    if (!isStorageEnabled()) return undefined;
+
+    const screenshotBase64 = imageBuffer.toString("base64");
+
+    const report: UnifiedReport = {
+      url: redirectAnalysis.finalUrl,
+      timestamp: Date.now(),
+      screenshotBase64,
+      contentAnalysis,
+      redirectAnalysis,
+    };
+
+    const { url } = await storage.storeUnifiedReport(userId, report);
+    console.log(`Uploaded report to ${url}`);
+    return url;
   }
 
   async takeScreenshot(
@@ -199,16 +215,23 @@ export class BrowserManager {
         browserConfig.getScreenshotOptions(format, quality)
       )) as Buffer;
 
-      const blobUrl = await this.uploadScreenshot(imageBuffer, userId, format);
       const content = await this.extractContent(page);
       const contentAnalysis = await this.contentAnalyzer.analyze(content);
+      const redirectAnalysis = this.redirectAnalyzer.getAnalysis(page.url());
+
+      const blobUrl = await this.uploadReport({
+        imageBuffer,
+        userId,
+        contentAnalysis,
+        redirectAnalysis,
+      });
 
       return {
         imageBuffer: Array.from(new Uint8Array(imageBuffer)),
         metrics: { requests: this.requestMonitor.getMetrics() },
         blobUrl,
         contentAnalysis,
-        redirectAnalysis: this.redirectAnalyzer.getAnalysis(page.url()),
+        redirectAnalysis,
       };
     } finally {
       if (page) {
