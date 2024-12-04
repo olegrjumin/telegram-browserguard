@@ -1,9 +1,12 @@
 import express, { Request, Response } from "express";
 import { config } from "./project-config";
 import { BrowserManager } from "./services/screenshot/browser-manager";
+import { storage } from "./services/storage";
+import { CleanupService } from "./services/storage/vercel-cleanup-service";
 
 const app = express();
 const browserManager = new BrowserManager();
+const cleanupService = new CleanupService(storage);
 
 app.use(express.json());
 
@@ -51,12 +54,17 @@ app.post("/screenshot", async (req: Request, res: Response) => {
   }
 });
 
-process.on("SIGINT", async () => {
+const cleanup = async () => {
+  cleanupService.stop();
   await browserManager.close();
   process.exit();
-});
+};
+
+process.on("SIGINT", cleanup);
+process.on("SIGTERM", cleanup);
 
 app.listen(config.PORT, () => {
   console.log(`Server running on port ${config.PORT}`);
   browserManager.initBrowser().catch(console.error);
+  cleanupService.start();
 });

@@ -1,17 +1,5 @@
+import { RedirectAnalysis, RedirectData } from "@/types";
 import { Page } from "puppeteer-core";
-
-export interface RedirectData {
-  url: string;
-  statusCode: number;
-  headers: Record<string, string>;
-  type: "http" | "js" | "meta";
-}
-
-export interface RedirectAnalysis {
-  chain: RedirectData[];
-  finalUrl: string;
-  totalRedirects: number;
-}
 
 export class RedirectAnalyzer {
   private redirects: RedirectData[] = [];

@@ -18,6 +18,7 @@ interface Config {
   PORT: number;
   NODE_ENV: "development" | "production";
   ANALYZER_API_URL: string;
+  MINI_APP_URL: string;
 }
 
 export const config: Config = {
@@ -27,6 +28,7 @@ export const config: Config = {
   WEBHOOK_PATH: process.env.WEBHOOK_PATH || "/webhook",
   PORT: parseInt(process.env.PORT || "3000", 10),
   NODE_ENV: (process.env.NODE_ENV || "development") as Config["NODE_ENV"],
+  MINI_APP_URL: requireEnv("MINI_APP_URL"),
 };
 
 export const isDevelopment = (): boolean => config.NODE_ENV === "development";

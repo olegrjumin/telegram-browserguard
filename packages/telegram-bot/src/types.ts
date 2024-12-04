@@ -34,11 +34,12 @@ export interface ScreenshotAPIResponse {
   redirectAnalysis: RedirectAnalysis;
   contentAnalysis: ContentAnalysis;
   blobUrl: string;
-  metrics: {
-    requests: {
-      blocked: number;
-      allowed: number;
-      total: number;
-    };
-  };
+}
+
+export interface UnifiedReport {
+  url: string;
+  timestamp: number;
+  screenshotBase64: string;
+  contentAnalysis: ContentAnalysis;
+  redirectAnalysis: RedirectAnalysis;
 }

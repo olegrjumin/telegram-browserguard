@@ -1,14 +1,6 @@
 import { OpenAIClient } from "@/lib/openai-client";
+import { ContentAnalysis } from "@/types";
 import { ExtractedContent } from "../screenshot/browser-manager";
-
-export interface ContentAnalysis {
-  purpose: string;
-  risks: string[];
-  isScam: boolean;
-  riskScore: number;
-  mainTopics: string[];
-  targetAudience: string;
-}
 
 export class ContentAnalyzer {
   constructor(private ai: OpenAIClient) {}
