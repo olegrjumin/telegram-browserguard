@@ -3,6 +3,9 @@ import { config } from "./project-config";
 import { BrowserManager } from "./services/screenshot/browser-manager";
 import { storage } from "./services/storage";
 import { CleanupService } from "./services/storage/vercel-cleanup-service";
+import dnsAnalysis from "./services/analysis/dns-analysis";
+import domainAgeAnalysis from "./services/analysis/domain-age";
+import sslAnalysis from "./services/analysis/ssl";
 
 const app = express();
 const browserManager = new BrowserManager();
@@ -51,6 +54,25 @@ app.post("/screenshot", async (req: Request, res: Response) => {
         error: "Unknown error",
       });
     }
+  }
+});
+
+app.get("/risk", async (req, res) => {
+  const { url } = req.query;
+
+  if (!url || !url.toString()) {
+    return res.status(400).json({ message: "No url was provided" });
+  }
+
+  try {
+    const [dnsInfo, domainAge, sslInfo] = await Promise.all([
+      dnsAnalysis(url.toString()),
+      domainAgeAnalysis(url.toString()),
+      sslAnalysis(url.toString()),
+    ]);
+    return res.json({ dnsInfo, domainAge, sslInfo });
+  } catch (e: any) {
+    return res.status(500).json({ message: new Error(e).message });
   }
 });
 

@@ -1,0 +1,79 @@
+import dns, { promises as dnsPromises, MxRecord } from "node:dns";
+import { extractHostname, withTimeout } from "../../../../utils";
+import { MAX_TIMEOUT } from "../../../../constants";
+const { resolveCname, resolveTxt, resolveMx } = dnsPromises;
+
+export const getIPAddresses = (
+  url: string,
+  shouldExtractHostname: boolean = true
+): Promise<string[]> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const hostname = shouldExtractHostname ? extractHostname(url) : url;
+      dns.resolve(hostname, (err, addresses) => {
+        if (err) {
+          reject(`DNS lookup failed for ${url}: ${err.message}`);
+        } else {
+          resolve(addresses);
+        }
+      });
+    } catch (err: any) {
+      reject(`Invalid URL: ${new Error(err)?.message}`);
+    }
+  });
+};
+
+export const getRecords = (url: string): Promise<dns.AnyRecord[]> => {
+  return new Promise((resolve, reject) => {
+    const hostname = extractHostname(url);
+    dns.resolveAny(hostname, (err, records) => {
+      if (err) {
+        reject(`Failed to fetch DNS records for ${hostname}: ${err.message}`);
+      } else {
+        resolve(records);
+      }
+    });
+  });
+};
+
+export const getHostnames = (ipAddress: string): Promise<string[]> => {
+  return new Promise((resolve, reject) => {
+    dns.reverse(ipAddress, (err, hostnames) => {
+      if (err) {
+        reject(`Reverse DNS lookup failed for ${ipAddress}: ${err.message}`);
+      } else {
+        resolve(hostnames);
+      }
+    });
+  });
+};
+
+export const getCNAMERecords = async (url: string): Promise<string[]> => {
+  const hostname = extractHostname(url);
+  try {
+    const aliases = await withTimeout(resolveCname(hostname), MAX_TIMEOUT);
+    return aliases;
+  } catch (err) {
+    return []; // No CNAME records
+  }
+};
+
+export const getTXTRecords = async (url: string): Promise<string[][]> => {
+  const hostname = extractHostname(url);
+  try {
+    const txtRecords = await resolveTxt(hostname);
+    return txtRecords;
+  } catch (err) {
+    return [];
+  }
+};
+
+export const getMXRecords = async (url: string): Promise<MxRecord[]> => {
+  const hostname = extractHostname(url);
+  try {
+    const mxRecords = await resolveMx(hostname);
+    return mxRecords;
+  } catch (err) {
+    return [];
+  }
+};
