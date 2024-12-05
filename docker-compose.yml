@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  analyzer:
+    build:
+      context: ./packages/analyzer
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - ENABLE_STORAGE=${ENABLE_STORAGE}
+      - BLOB_READ_WRITE_TOKEN=${BLOB_READ_WRITE_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1"
+
+  telegram-bot:
+    build:
+      context: ./packages/telegram-bot
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - BOT_TOKEN=${BOT_TOKEN}
+      - ANALYZER_API_URL=http://analyzer:3001
+      - MINI_APP_URL=${MINI_APP_URL}
+    depends_on:
+      - analyzer
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+
+  # mini-app:
+  #   build:
+  #     context: ./packages/telegram-mini-app
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   depends_on:
+  #     - telegram-bot
+  #     - analyzer
+  #   restart: unless-stopped
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 256M
+  #         cpus: "0.5"
+
+networks:
+  default:
+    driver: bridge

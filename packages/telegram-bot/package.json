@@ -1,0 +1,25 @@
+{
+  "name": "telegram-bot",
+  "version": "1.0.0",
+  "module": "true",
+  "scripts": {
+    "build": "tsc",
+    "start": "node -r ts-node/register/transpile-only -r tsconfig-paths/register dist/index.js",
+    "dev": "ts-node-dev -r tsconfig-paths/register --respawn --transpile-only --ignore node_modules src/index.ts"
+  },
+  "dependencies": {
+    "dotenv": "16.4.5",
+    "express": "4.21.1",
+    "fastq": "^1.17.1",
+    "limiter": "^2.1.0",
+    "telegraf": "^4.16.3",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.1",
+    "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.2"
+  }
+}
