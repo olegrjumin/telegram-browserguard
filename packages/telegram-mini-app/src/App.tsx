@@ -1,36 +1,24 @@
-import { Home } from "./pages/home";
+import { miniApp, useLaunchParams } from "@telegram-apps/sdk-react";
+import { AppRoot } from "@telegram-apps/telegram-ui";
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
+import { routes } from "./routes";
 
-function App() {
-  // const { platform } = useLaunchParams();
-
-  // Create new application navigator and attach it to the browser history, so it could modify
-  // it and listen to its changes.
-  // const navigator = useMemo(() => initNavigator("app-navigation-state"), []);
-  // const [location, reactNavigator] = useIntegration(navigator);
-
-  // Don't forget to attach the navigator to allow it to control the BackButton state as well
-  // as browser history.
-  // useEffect(() => {
-  //   navigator.attach();
-  //   return () => navigator.detach();
-  // }, [navigator]);
-
-  // if (!isRunningWithinTelegram(platform)) {
-  //   return (
-  //     <BrowserRouter>
-  //       <AppRoutes />
-  //     </BrowserRouter>
-  //   );
-  // }
+export function App() {
+  const lp = useLaunchParams();
 
   return (
-    <div>
-      {/* <Router location={location} navigator={reactNavigator}> */}
-      {/* <AppRoutes /> */}
-      {/* </Router> */}
-      <Home />
-    </div>
+    <AppRoot
+      appearance={miniApp.isDark() ? "dark" : "light"}
+      platform={["macos", "ios"].includes(lp.platform) ? "ios" : "base"}
+    >
+      <HashRouter>
+        <Routes>
+          {routes.map((route) => (
+            <Route key={route.path} {...route} />
+          ))}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </HashRouter>
+    </AppRoot>
   );
 }
-
-export default App;

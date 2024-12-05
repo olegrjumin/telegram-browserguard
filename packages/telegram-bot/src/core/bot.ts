@@ -7,7 +7,7 @@ const bot = new Telegraf<BotContext>(config.BOT_TOKEN);
 
 bot.use(session());
 
-bot.catch((err: Error, ctx: BotContext) => {
+bot.catch((err, ctx: BotContext) => {
   if (isDevelopment()) {
     ctx.reply("Error: " + err);
   } else {
@@ -24,13 +24,16 @@ bot.command("help", async (ctx: BotContext) => {
 });
 
 bot.on("inline_query", async (ctx: BotContext) => {
-  const query = ctx.inlineQuery.query;
+  const query = ctx?.inlineQuery?.query;
   return ctx.answerInlineQuery([
     {
       type: "article",
       id: "1",
       title: "Click here to get a report",
       description: `Analyze: ${query}`,
+      input_message_content: {
+        message_text: `Analyzing: ${query}`,
+      },
     },
   ]);
 });

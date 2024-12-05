@@ -87,7 +87,6 @@ async function processUrl(task: Task) {
 
       await ctx.reply(analysisMessage, {
         parse_mode: "Markdown",
-        disable_web_page_preview: true,
         ...createMiniAppButton(blobUrl),
       });
     }

@@ -1,9 +1,9 @@
-import { useInitData } from "@tma.js/sdk-react";
+import { useLaunchParams } from "@telegram-apps/sdk-react";
 import { useMemo } from "react";
 
 export const useTgUser = () => {
-  const initData = useInitData();
-  const { user } = initData || {};
+  const params = useLaunchParams();
+  const { user } = params?.initData || {};
   const currentTgUserId = user?.id?.toString() || "";
   const newUser = useMemo(
     () => ({
