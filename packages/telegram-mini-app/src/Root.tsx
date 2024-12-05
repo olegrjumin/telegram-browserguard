@@ -1,29 +1,27 @@
-import { SDKProvider, useLaunchParams } from "@tma.js/sdk-react";
-import React, { useEffect, type FC } from "react";
-import App from "./App";
+import { App } from "./App";
 import { ErrorBoundary } from "./components/error-boundary";
-import { ErrorBoundaryError } from "./components/error-boundary-error";
 
-const Inner: FC = () => {
-  const debug = useLaunchParams().startParam === "debug";
-
-  useEffect(() => {
-    if (debug) {
-      import("eruda").then((lib) => lib.default.init());
-    }
-  }, [debug]);
-
+function ErrorBoundaryError({ error }: { error: unknown }) {
   return (
-    <React.StrictMode>
-      <SDKProvider acceptCustomStyles>
-        <App />
-      </SDKProvider>
-    </React.StrictMode>
+    <div>
+      <p>An unhandled error occurred:</p>
+      <blockquote>
+        <code>
+          {error instanceof Error
+            ? error.message
+            : typeof error === "string"
+              ? error
+              : JSON.stringify(error)}
+        </code>
+      </blockquote>
+    </div>
   );
-};
+}
 
-export const Root: FC = () => (
-  <ErrorBoundary fallback={ErrorBoundaryError}>
-    <Inner />
-  </ErrorBoundary>
-);
+export function Root() {
+  return (
+    <ErrorBoundary fallback={ErrorBoundaryError}>
+      <App />
+    </ErrorBoundary>
+  );
+}

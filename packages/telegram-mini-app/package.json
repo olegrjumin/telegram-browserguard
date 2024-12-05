@@ -11,8 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tma.js/react-router-integration": "^4.0.2",
-    "@tma.js/sdk-react": "^2.2.3",
+    "@telegram-apps/sdk-react": "2.0.18",
+    "@telegram-apps/telegram-ui": "^2.1.8",
     "@vitejs/plugin-react-swc": "^3.7.0",
     "eruda": "^3.0.1",
     "lucide-react": "^0.465.0",
