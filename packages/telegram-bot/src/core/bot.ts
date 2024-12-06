@@ -1,6 +1,6 @@
 import { urlHandler } from "@/handlers/url.handler";
 import { config, isDevelopment } from "@/project-config";
-import { BotContext } from "@/types";
+import { BotContext } from "@/types/session";
 import { Telegraf, session } from "telegraf";
 
 const bot = new Telegraf<BotContext>(config.BOT_TOKEN);

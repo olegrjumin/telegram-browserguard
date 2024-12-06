@@ -1,4 +1,5 @@
 import { MAX_TIMEOUT } from "@/constants";
+import { DomainAge } from "@/types";
 import { withTimeout } from "@/utils/with-timeout";
 import {
   calculateDomainAge,
@@ -7,15 +8,7 @@ import {
 import { dnsFallback } from "./dns-fallback";
 import { whoisQuery } from "./whois-query";
 
-interface DomainDate {
-  method: "WHOIS" | "DNS Fallback";
-  creationDate: string;
-  age: number;
-}
-
-export type DomainAgeRawData = DomainDate | null;
-
-const getDnsAge = async (hostname: string): Promise<DomainAgeRawData> => {
+const getDnsAge = async (hostname: string): Promise<DomainAge> => {
   try {
     const dnsCreationDate = await dnsFallback(hostname);
     if (!dnsCreationDate) return null;
@@ -35,7 +28,7 @@ const getWhoisAge = async (
   hostname: string,
   tld: string,
   timeoutMs: number
-): Promise<DomainAgeRawData> => {
+): Promise<DomainAge> => {
   try {
     const whoisData = await withTimeout(whoisQuery(hostname, tld), timeoutMs);
     if (!whoisData) return null;
@@ -64,7 +57,7 @@ const getWhoisAge = async (
 export const getDomainAge = async (
   hostname: string,
   tld: string
-): Promise<DomainAgeRawData> => {
+): Promise<DomainAge> => {
   const whoisResult = await getWhoisAge(hostname, tld, MAX_TIMEOUT);
   if (whoisResult) return whoisResult;
 

@@ -1,46 +1,12 @@
 import { OpenAIClient } from "@/lib/openai-client";
-import { RedirectAnalysis } from "@/types";
-import { DnsRawData } from "./dns-analysis";
-import { DomainAgeRawData } from "./domain-age/get-domain-age";
-import { SSLInfo, SSLInfoRawData } from "./get-ssl-info";
-
-export interface SecurityAnalysisInput {
-  redirects: RedirectAnalysis;
-  dns: DnsRawData;
-  domainAge: DomainAgeRawData;
-  ssl: SSLInfoRawData;
-}
-
-export interface RiskAssessment {
-  riskScore: number;
-  riskLevel: "LOW" | "MEDIUM" | "HIGH";
-  findings: string[];
-  redFlags: string[];
-  trustIndicators: string[];
-  recommendations: string[];
-  technicalDetails: {
-    redirectAnalysis: {
-      suspiciousRedirects: boolean;
-      crossDomainRedirects: boolean;
-      redirectChainLength: number;
-    };
-    dnsAnalysis: {
-      hasSPF: boolean;
-      hasMX: boolean;
-      hasSecurityVerifications: boolean;
-      geolocationRisk: "LOW" | "MEDIUM" | "HIGH";
-    };
-    domainAnalysis: {
-      ageRisk: "LOW" | "MEDIUM" | "HIGH";
-      verificationMethod: "WHOIS" | "DNS Fallback" | "UNKNOWN";
-    };
-    sslAnalysis: {
-      isValid: boolean;
-      issuerTrust: "LOW" | "MEDIUM" | "HIGH";
-      expiryRisk: "LOW" | "MEDIUM" | "HIGH";
-    };
-  };
-}
+import {
+  Dns,
+  DomainAge,
+  RedirectAnalysis,
+  RiskAssessment,
+  SecurityAnalysisInput,
+  SSLInfo,
+} from "@/types";
 
 export class AIRiskAnalyzer {
   constructor(private ai: OpenAIClient) {}
@@ -150,7 +116,7 @@ export class AIRiskAnalyzer {
     return parts.join("\n") || "No redirect data available";
   }
 
-  private formatDnsData(dns: DnsRawData | null): string {
+  private formatDnsData(dns: Dns | null): string {
     if (!dns) return "DNS analysis data unavailable";
 
     const parts = [];
@@ -199,7 +165,7 @@ export class AIRiskAnalyzer {
     return parts.join("\n") || "No DNS data available";
   }
 
-  private formatDomainAge(domainAge: DomainAgeRawData | null): string {
+  private formatDomainAge(domainAge: DomainAge | null): string {
     if (!domainAge) return "Domain age information unavailable";
 
     const parts = [];

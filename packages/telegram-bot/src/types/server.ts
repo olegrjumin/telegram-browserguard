@@ -1,3 +1,21 @@
+export interface ContentAnalysis {
+  purpose: string;
+  risks: string[];
+  isScam: boolean;
+  riskScore: number;
+  mainTopics: string[];
+  targetAudience: string;
+}
+
+export interface UnifiedReport {
+  url: string;
+  timestamp: number;
+  screenshotBase64: string;
+  contentAnalysis: ContentAnalysis;
+  securityData: SecurityAnalysisInput;
+  securityAnalysis: RiskAssessment;
+}
+
 export type RiskLevel = "HIGH" | "MEDIUM" | "LOW";
 
 // Redirects
@@ -109,23 +127,4 @@ export interface RiskAssessment {
       expiryRisk: "LOW" | "MEDIUM" | "HIGH";
     };
   };
-}
-
-// Report
-export interface ContentAnalysis {
-  purpose: string;
-  risks: string[];
-  isScam: boolean;
-  riskScore: number;
-  mainTopics: string[];
-  targetAudience: string;
-}
-
-export interface UnifiedReport {
-  url: string;
-  timestamp: number;
-  screenshotBase64: string;
-  contentAnalysis: ContentAnalysis;
-  securityData: SecurityAnalysisInput;
-  securityAnalysis: RiskAssessment;
 }

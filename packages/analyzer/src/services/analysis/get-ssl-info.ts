@@ -1,15 +1,6 @@
+import { SSLInfoRawData } from "@/types";
 import tls from "tls";
 import { URL } from "url";
-
-export interface SSLInfo {
-  validFrom: string | null;
-  validTo: string | null;
-  issuer: string | null;
-  valid: boolean;
-  daysRemaining: number;
-}
-
-export type SSLInfoRawData = SSLInfo | null;
 
 export const getSSLInfo = (domain: string): Promise<SSLInfoRawData> => {
   return new Promise((resolve, reject) => {

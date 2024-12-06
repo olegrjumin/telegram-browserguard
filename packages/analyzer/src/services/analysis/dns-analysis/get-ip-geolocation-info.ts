@@ -1,31 +1,6 @@
 import { config } from "@/project-config";
+import { IpGeolocationResponse } from "@/types";
 import axios from "axios";
-
-export type GeoInfo = {
-  ip: string;
-  continent_code?: string;
-  continent_name?: string;
-  country_code2: string;
-  country_code3: string;
-  country_name: string;
-  country_name_official: string;
-  city: string;
-  zipcode: string;
-  latitude: string;
-  longitude: string;
-  is_eu: false;
-  geoname_id: string;
-  isp?: string;
-  currency?: {
-    code: string;
-    name: string;
-    symbol: string;
-  };
-};
-
-export type IpGeolocationResponse = {
-  geoInfo: GeoInfo;
-};
 
 const GEOLOCATION_API_BASE_URL = "https://api.ipgeolocation.io";
 
