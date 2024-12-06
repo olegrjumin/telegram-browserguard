@@ -19,15 +19,15 @@ export function extractUrls(text: string): string[] {
   const standardUrls = text.match(standardUrlRegex) || [];
   urls.push(...standardUrls);
 
+  const remainingText = text.replace(standardUrlRegex, "");
   const wwwUrlRegex = /(?<!@)(www\.[^\s]+)/g;
-  const wwwUrls = text.match(wwwUrlRegex) || [];
+  const wwwUrls = remainingText.match(wwwUrlRegex) || [];
   urls.push(...wwwUrls);
 
-  const words = text
+  const words = remainingText
     .split(/\s+/)
     .filter(
       (word) =>
-        !urls.some((url) => url.includes(word)) &&
         word.length > 3 &&
         word.includes(".") &&
         !word.startsWith(".") &&
@@ -35,16 +35,15 @@ export function extractUrls(text: string): string[] {
         !word.includes("@")
     );
 
-  const bareDomains = words.filter((word) => {
-    return isValidDomain(word) && getDomain(word) !== null;
-  });
+  const bareDomains = words.filter(
+    (word) => isValidDomain(word) && getDomain(word) !== null
+  );
 
   urls.push(...bareDomains);
 
   return [...new Set(urls)]
     .map((url) => {
       const hostname = getHostname(url) || url;
-
       return isValidDomain(hostname) ? normalizeUrl(url) : null;
     })
     .filter((url): url is string => url !== null);
