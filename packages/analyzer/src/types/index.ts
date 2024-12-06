@@ -129,3 +129,21 @@ export interface UnifiedReport {
   securityData: SecurityAnalysisInput;
   securityAnalysis: RiskAssessment;
 }
+
+export interface StorageService {
+  upload(fileName: string, data: Buffer): Promise<{ url: string }>;
+  delete?(url: string): Promise<void>;
+  cleanupOldFiles?(): Promise<void>;
+  storeUnifiedReport(
+    userId: number,
+    data: UnifiedReport
+  ): Promise<{ url: string }>;
+}
+
+export interface S3Config {
+  bucketName: string;
+  region: string;
+  credentials: { accessKeyId: string; secretAccessKey: string };
+}
+
+export type StorageType = "vercel-blob" | "s3";

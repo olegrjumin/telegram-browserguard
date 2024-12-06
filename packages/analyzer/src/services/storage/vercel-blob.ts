@@ -1,15 +1,5 @@
-import { UnifiedReport } from "@/types";
+import { StorageService, UnifiedReport } from "@/types";
 import { del, list, put } from "@vercel/blob";
-
-export interface StorageService {
-  upload(fileName: string, data: Buffer): Promise<{ url: string }>;
-  delete?(url: string): Promise<void>;
-  cleanupOldFiles?(): Promise<void>;
-  storeUnifiedReport(
-    userId: number,
-    data: UnifiedReport
-  ): Promise<{ url: string }>;
-}
 
 export class VercelBlobStorage implements StorageService {
   async upload(fileName: string, data: Buffer): Promise<{ url: string }> {

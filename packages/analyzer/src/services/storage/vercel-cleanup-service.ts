@@ -1,5 +1,5 @@
+import { StorageService } from "@/types";
 import cron from "node-cron";
-import { StorageService } from "./vercel-blob";
 
 export class CleanupService {
   private cleanupJob: cron.ScheduledTask | null = null;
