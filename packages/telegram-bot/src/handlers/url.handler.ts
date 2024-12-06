@@ -4,6 +4,7 @@ import { BotContext } from "@/types/session";
 import type { queueAsPromised } from "fastq";
 import fastq from "fastq";
 import { RateLimiter } from "limiter";
+import { extractUrls } from "./url-extract";
 
 const userLimiters = new Map<number, RateLimiter>();
 const RATE_LIMIT = 5;
@@ -15,11 +16,6 @@ interface Task {
 }
 
 const queue: queueAsPromised<Task> = fastq.promise(processUrl, 1);
-
-function extractUrls(text: string): string[] {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  return text.match(urlRegex) || [];
-}
 
 function getUserLimiter(userId: number): RateLimiter {
   if (!userLimiters.has(userId)) {
@@ -67,40 +63,6 @@ function createMiniAppButton(url: string, ctx: BotContext) {
     },
   };
 }
-
-// async function processUrl(task: Task) {
-//   const { ctx, url } = task;
-//   try {
-//     const statusMessage = await ctx.reply(`🔄 Processing: ${url}`);
-//     const userId = ctx.message!.from.id;
-//     const { imageBuffer, contentAnalysis } = await getScreenshot(url);
-
-//     const { securityAnalysis, securityData } = await getRawData(url);
-
-//     const { blobUrl } = await saveReport({
-//       url,
-//       userId,
-//       screenshotBase64: Buffer.from(imageBuffer).toString("base64"),
-//       contentAnalysis,
-//       securityData,
-//       securityAnalysis,
-//     });
-
-//     if (imageBuffer) {
-//       await ctx.replyWithPhoto({ source: Buffer.from(imageBuffer) });
-
-//       await ctx.reply(blobUrl, {
-//         parse_mode: "Markdown",
-//         ...createMiniAppButton(blobUrl, ctx),
-//       });
-//     }
-
-//     await ctx.telegram.deleteMessage(ctx.chat!.id, statusMessage.message_id);
-//   } catch (error) {
-//     await ctx.reply(`❌ Failed to process: ${url}`);
-//     console.error(`Error processing URL ${url}:`, error);
-//   }
-// }
 
 async function processUrl(task: Task) {
   const { ctx, url } = task;
