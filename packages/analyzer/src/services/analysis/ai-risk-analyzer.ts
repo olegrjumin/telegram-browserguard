@@ -1,9 +1,8 @@
 import { OpenAIClient } from "@/lib/openai-client";
 import { RedirectAnalysis } from "@/types";
-import { DnsRawData } from "./dns-analysis/data-retrieval/get-dns-data";
-
-import { DomainAgeRawData } from "./domain-age/data-retrieval/get-domain-age";
-import { SSLInfo, SSLInfoRawData } from "./ssl/get-ssl-info";
+import { DnsRawData } from "./dns-analysis";
+import { DomainAgeRawData } from "./domain-age/get-domain-age";
+import { SSLInfo, SSLInfoRawData } from "./get-ssl-info";
 
 export interface SecurityAnalysisInput {
   redirects: RedirectAnalysis;

@@ -5,11 +5,13 @@ import {
   AIRiskAnalyzer,
   SecurityAnalysisInput,
 } from "./services/analysis/ai-risk-analyzer";
-import { dnsAnalysis } from "./services/analysis/dns-analysis";
-import { getDnsRawData } from "./services/analysis/dns-analysis/data-retrieval/get-dns-data";
+import { getDnsRawData } from "./services/analysis/dns-analysis";
 import { getDomainAgeRaw } from "./services/analysis/domain-age";
+import { getSSLInfo } from "./services/analysis/get-ssl-info";
 import { HttpRedirectAnalyzer } from "./services/analysis/http-redirect-analyzer";
-import { getSSLInfo } from "./services/analysis/ssl/get-ssl-info";
+import { dnsAnalysis } from "./services/risk/dns-risk";
+import { domainAgeAnalysis } from "./services/risk/domain-age-risk";
+import { sslAnalysis } from "./services/risk/ssl-risk";
 import { BrowserManager } from "./services/screenshot/browser-manager";
 import { storage } from "./services/storage";
 import { CleanupService } from "./services/storage/vercel-cleanup-service";
@@ -108,10 +110,9 @@ app.get("/risk", async (req, res) => {
 
   try {
     const [dnsInfo, domainAge, sslInfo] = await Promise.all([
-      // analyzer.analyzeUrl(url.toString()),
       dnsAnalysis(url.toString()),
-      // domainAgeAnalysis(url.toString()),
-      // sslAnalysis(url.toString()),
+      domainAgeAnalysis(url.toString()),
+      sslAnalysis(url.toString()),
     ]);
     return res.json({ dnsInfo, domainAge, sslInfo });
   } catch (e: any) {

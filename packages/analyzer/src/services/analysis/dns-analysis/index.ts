@@ -1,25 +1,31 @@
-import { getDnsRawData } from "./data-retrieval/get-dns-data";
-import { aggregateIpRiskLevels } from "./risk/ipGeolocationRisk";
-import { evaluateMXRecordsRisk } from "./risk/mxRecordsRisk";
-import { evaluateTXTRecordsRisk } from "./risk/txtRecordsRisk";
+import { checkWildcardDomain } from "./check-wildcard-domain";
+import { getIPAddresses, getMXRecords, getTXTRecords } from "./dns";
+import {
+  getIPGeolocationInfo,
+  IpGeolocationResponse,
+} from "./get-ip-geolocation-info";
 
-export const dnsAnalysis = async (url: string) => {
-  try {
-    const { ipGeolocationInfo, txtRecords, mxRecords, isWildcardDomain } =
-      await getDnsRawData(url);
+export type DnsRawData = {
+  ipGeolocationInfo: IpGeolocationResponse[];
+  txtRecords: string[][];
+  mxRecords: Array<{
+    exchange: string;
+    priority: number;
+  }>;
+  isWildcardDomain: boolean;
+};
 
-    console.log("TXT Records:", txtRecords);
-    console.log("MX Records:", mxRecords);
-    console.log("IP Geolocation Info:", ipGeolocationInfo);
-    console.log("Has wildcard:", isWildcardDomain);
+export const getDnsRawData = async (url: string): Promise<DnsRawData> => {
+  const addresses = await getIPAddresses(url);
+  const ipGeolocationInfo = await getIPGeolocationInfo(addresses);
+  const txtRecords = await getTXTRecords(url);
+  const mxRecords = await getMXRecords(url);
+  const isWildcardDomain = await checkWildcardDomain(url);
 
-    return {
-      ipGeolocationRisk: aggregateIpRiskLevels(ipGeolocationInfo),
-      txtRecordsRisk: evaluateTXTRecordsRisk(txtRecords),
-      mxRecordsRisk: evaluateMXRecordsRisk(mxRecords),
-      wildcardRisk: isWildcardDomain ? "HIGH" : "LOW",
-    };
-  } catch (error: any) {
-    throw new Error(error);
-  }
+  return {
+    ipGeolocationInfo,
+    txtRecords,
+    mxRecords,
+    isWildcardDomain,
+  };
 };

@@ -1,5 +1,5 @@
+import { IpGeolocationResponse } from "@/services/analysis/dns-analysis/get-ip-geolocation-info";
 import { RiskLevel } from "@/types";
-import { IpGeolocationResponse } from "../data-retrieval/get-ip-geolocation-info";
 import highRiskCountries from "./json/highRiskCountris.json";
 import mediumRiskCountries from "./json/mediumRiskCountries.json";
 import trustedISPs from "./json/trustedISPs.json";
