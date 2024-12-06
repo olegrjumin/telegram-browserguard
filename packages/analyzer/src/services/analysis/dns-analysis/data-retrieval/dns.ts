@@ -1,6 +1,7 @@
-import dns, { promises as dnsPromises, MxRecord } from "node:dns";
-import { extractHostname, withTimeout } from "../../../../utils";
-import { MAX_TIMEOUT } from "../../../../constants";
+import { MAX_TIMEOUT } from "@/constants";
+import { extractHostname } from "@/utils/extract-hostname";
+import { withTimeout } from "@/utils/with-timeout";
+import dns, { promises as dnsPromises } from "node:dns";
 const { resolveCname, resolveTxt, resolveMx } = dnsPromises;
 
 export const getIPAddresses = (
@@ -48,7 +49,7 @@ export const getHostnames = (ipAddress: string): Promise<string[]> => {
   });
 };
 
-export const getCNAMERecords = async (url: string): Promise<string[]> => {
+export const getCNAMERecords = async (url: string) => {
   const hostname = extractHostname(url);
   try {
     const aliases = await withTimeout(resolveCname(hostname), MAX_TIMEOUT);
@@ -59,19 +60,19 @@ export const getCNAMERecords = async (url: string): Promise<string[]> => {
 };
 
 export const getTXTRecords = async (url: string): Promise<string[][]> => {
-  const hostname = extractHostname(url);
   try {
-    const txtRecords = await resolveTxt(hostname);
+    const mainDomain = extractHostname(url);
+    const txtRecords = await resolveTxt(mainDomain);
     return txtRecords;
   } catch (err) {
     return [];
   }
 };
 
-export const getMXRecords = async (url: string): Promise<MxRecord[]> => {
-  const hostname = extractHostname(url);
+export const getMXRecords = async (url: string) => {
+  const mainDomain = extractHostname(url);
   try {
-    const mxRecords = await resolveMx(hostname);
+    const mxRecords = await resolveMx(mainDomain);
     return mxRecords;
   } catch (err) {
     return [];

@@ -4,7 +4,9 @@ interface DomainAnalysis {
   method: string;
 }
 
-const evaluateDomainAgeRisk = (domainAgeInfo: DomainAnalysis): string => {
+export const evaluateDomainAgeRisk = (
+  domainAgeInfo: DomainAnalysis
+): string => {
   const { age } = domainAgeInfo;
 
   if (!age) {
@@ -25,5 +27,3 @@ const evaluateDomainAgeRisk = (domainAgeInfo: DomainAnalysis): string => {
 
   return "HIGH"; // Default to high for very new domains (< 1 year)
 };
-
-export default evaluateDomainAgeRisk;

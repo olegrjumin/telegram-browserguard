@@ -1,49 +1,25 @@
-import {
-  getIPAddresses,
-  getMXRecords,
-  getTXTRecords,
-  getIPGeolocationInfo,
-  getWildcardDomain,
-} from "./data-retrieval";
-import evaluateIpGeolocationRisk from "./risk/ipGeolocationRisk";
-import evaluateMXRecordsRisk from "./risk/mxRecordsRisk";
-import evaluateTXTRecordsRisk from "./risk/txtRecordsRisk";
+import { getDnsRawData } from "./data-retrieval/get-dns-data";
+import { aggregateIpRiskLevels } from "./risk/ipGeolocationRisk";
+import { evaluateMXRecordsRisk } from "./risk/mxRecordsRisk";
+import { evaluateTXTRecordsRisk } from "./risk/txtRecordsRisk";
 
-const dnsAnalysis = async (url: string): Promise<any> => {
+export const dnsAnalysis = async (url: string) => {
   try {
-    const addresses = await getIPAddresses(url);
+    const { ipGeolocationInfo, txtRecords, mxRecords, isWildcardDomain } =
+      await getDnsRawData(url);
 
-    const [ipGeolocationInfo, txtRecords, mxRecords, wildcard] =
-      await Promise.all([
-        getIPGeolocationInfo(addresses),
-        getTXTRecords(url),
-        getMXRecords(url),
-        getWildcardDomain(url),
-      ]);
-
-    let ipGeolocationRisk = "LOW";
-    ipGeolocationInfo.forEach((ipGeo) => {
-      const risk = evaluateIpGeolocationRisk(ipGeo);
-      if (risk === "HIGH") {
-        ipGeolocationRisk = "HIGH";
-      } else if (risk === "MEDIUM" && ipGeolocationRisk === "LOW") {
-        ipGeolocationRisk = "MEDIUM";
-      }
-    });
-
-    const txtRecordsRisk: string = evaluateTXTRecordsRisk(txtRecords[0]);
-    const mxRecordsRisk: string = evaluateMXRecordsRisk(mxRecords);
-    const wildcardRisk = wildcard ? "HIGH" : "LOW";
+    console.log("TXT Records:", txtRecords);
+    console.log("MX Records:", mxRecords);
+    console.log("IP Geolocation Info:", ipGeolocationInfo);
+    console.log("Has wildcard:", isWildcardDomain);
 
     return {
-      ipGeolocationRisk,
-      txtRecordsRisk,
-      mxRecordsRisk,
-      wildcardRisk,
+      ipGeolocationRisk: aggregateIpRiskLevels(ipGeolocationInfo),
+      txtRecordsRisk: evaluateTXTRecordsRisk(txtRecords),
+      mxRecordsRisk: evaluateMXRecordsRisk(mxRecords),
+      wildcardRisk: isWildcardDomain ? "HIGH" : "LOW",
     };
   } catch (error: any) {
     throw new Error(error);
   }
 };
-
-export default dnsAnalysis;

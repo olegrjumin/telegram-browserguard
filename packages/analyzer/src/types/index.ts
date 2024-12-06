@@ -27,3 +27,5 @@ export interface UnifiedReport {
   contentAnalysis: ContentAnalysis;
   redirectAnalysis: RedirectAnalysis;
 }
+
+export type RiskLevel = "HIGH" | "MEDIUM" | "LOW";

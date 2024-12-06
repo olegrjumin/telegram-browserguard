@@ -1,7 +1,7 @@
-import getSSLInfo from "./data-retrieval";
-import evaluateSSLRisk from "./risk";
+import { getSSLInfo } from "./get-ssl-info";
+import { evaluateSSLRisk } from "./risk";
 
-const sslAnalysis = async (url: string) => {
+export const sslAnalysis = async (url: string) => {
   try {
     const sslInfo = await getSSLInfo(url);
     if (!sslInfo) {
@@ -17,4 +17,3 @@ const sslAnalysis = async (url: string) => {
     return { sslRisk: "INCONCLUSIVE" };
   }
 };
-export default sslAnalysis;

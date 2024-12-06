@@ -1,18 +1,26 @@
-export const calculateDomainAge = (creationDate: string): number => {
-  const creationDateObj = new Date(creationDate);
-  const currentDate = new Date();
+export const calculateDomainAge = (creationDate: string) => {
+  const created = new Date(creationDate);
+  const now = new Date();
   const ageInYears = Math.floor(
-    (currentDate.getTime() - creationDateObj.getTime()) /
-      (1000 * 60 * 60 * 24 * 365.25)
+    (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24 * 365.25)
   );
   return ageInYears;
 };
 
-export const extractCreationDate = (whoisData: string): string | null => {
-  const creationDateRegex =
-    /\b(?:Creation Date|Created On|Registered On):?\s*([\d\/\-T:.Z]+)\b/i;
-  console.log("data inside extractCreationDate ", whoisData);
-  const match = creationDateRegex.exec(whoisData);
-  console.log("mathces: ", match);
-  return match ? match[1] : null;
+export const extractCreationDateFromWhois = (data: string) => {
+  const datePatterns = [
+    /Creation Date: (.+)/i,
+    /created: (.+)/i,
+    /Registration Time: (.+)/i,
+    /Domain Create Date: (.+)/i,
+    /Registered on: (.+)/i,
+  ];
+
+  for (const pattern of datePatterns) {
+    const match = data.match(pattern);
+    if (match?.[1]) {
+      return new Date(match[1].trim()).toISOString();
+    }
+  }
+  return null;
 };

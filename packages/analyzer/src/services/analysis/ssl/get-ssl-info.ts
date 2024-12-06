@@ -1,7 +1,7 @@
 import tls from "tls";
 import { URL } from "url";
 
-interface SSLInfo {
+export interface SSLInfo {
   validFrom: string | null;
   validTo: string | null;
   issuer: string | null;
@@ -9,7 +9,9 @@ interface SSLInfo {
   daysRemaining: number;
 }
 
-const getSSLInfo = (domain: string): Promise<SSLInfo | null> => {
+export type SSLInfoRawData = SSLInfo | null;
+
+export const getSSLInfo = (domain: string): Promise<SSLInfoRawData> => {
   return new Promise((resolve, reject) => {
     const url = new URL(
       domain.startsWith("http") ? domain : `https://${domain}`
@@ -48,5 +50,3 @@ const getSSLInfo = (domain: string): Promise<SSLInfo | null> => {
     });
   });
 };
-
-export default getSSLInfo;

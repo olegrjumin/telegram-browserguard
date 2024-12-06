@@ -1,11 +1,18 @@
 import express, { Request, Response } from "express";
+import { OpenAIClient } from "./lib/openai-client";
 import { config } from "./project-config";
+import {
+  AIRiskAnalyzer,
+  SecurityAnalysisInput,
+} from "./services/analysis/ai-risk-analyzer";
+import { dnsAnalysis } from "./services/analysis/dns-analysis";
+import { getDnsRawData } from "./services/analysis/dns-analysis/data-retrieval/get-dns-data";
+import { getDomainAgeRaw } from "./services/analysis/domain-age";
+import { HttpRedirectAnalyzer } from "./services/analysis/http-redirect-analyzer";
+import { getSSLInfo } from "./services/analysis/ssl/get-ssl-info";
 import { BrowserManager } from "./services/screenshot/browser-manager";
 import { storage } from "./services/storage";
 import { CleanupService } from "./services/storage/vercel-cleanup-service";
-import dnsAnalysis from "./services/analysis/dns-analysis";
-import domainAgeAnalysis from "./services/analysis/domain-age";
-import sslAnalysis from "./services/analysis/ssl";
 
 const app = express();
 const browserManager = new BrowserManager();
@@ -57,6 +64,41 @@ app.post("/screenshot", async (req: Request, res: Response) => {
   }
 });
 
+const analyzer = new HttpRedirectAnalyzer();
+
+app.get("/raw", async (req, res) => {
+  const { url } = req.query;
+
+  if (!url || !url.toString()) {
+    return res.status(400).json({ message: "No url was provided" });
+  }
+
+  const urlStr = url.toString();
+  try {
+    const [redirects, dns, domainAge, ssl] = await Promise.all([
+      analyzer.analyze(urlStr),
+      getDnsRawData(urlStr),
+      getDomainAgeRaw(urlStr),
+      getSSLInfo(urlStr),
+    ]);
+
+    const openai = new OpenAIClient(config.OPENAI_API_KEY);
+    const riskAnalyzer = new AIRiskAnalyzer(openai);
+
+    const securityData: SecurityAnalysisInput = {
+      redirects,
+      dns,
+      domainAge,
+      ssl,
+    };
+    const assessment = await riskAnalyzer.analyze(securityData);
+
+    return res.json({ ...securityData, assessment });
+  } catch (e: any) {
+    return res.status(500).json({ message: new Error(e).message });
+  }
+});
+
 app.get("/risk", async (req, res) => {
   const { url } = req.query;
 
@@ -66,9 +108,10 @@ app.get("/risk", async (req, res) => {
 
   try {
     const [dnsInfo, domainAge, sslInfo] = await Promise.all([
+      // analyzer.analyzeUrl(url.toString()),
       dnsAnalysis(url.toString()),
-      domainAgeAnalysis(url.toString()),
-      sslAnalysis(url.toString()),
+      // domainAgeAnalysis(url.toString()),
+      // sslAnalysis(url.toString()),
     ]);
     return res.json({ dnsInfo, domainAge, sslInfo });
   } catch (e: any) {

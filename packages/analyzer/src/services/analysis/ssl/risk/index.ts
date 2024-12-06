@@ -9,7 +9,9 @@ interface SSLInfo {
   daysRemaining: number;
 }
 
-const evaluateSSLRisk = (sslInfo: SSLInfo): "LOW" | "MEDIUM" | "HIGH" => {
+export const evaluateSSLRisk = (
+  sslInfo: SSLInfo
+): "LOW" | "MEDIUM" | "HIGH" => {
   const { valid, daysRemaining, issuer } = sslInfo;
 
   if (!valid) {
@@ -35,5 +37,3 @@ const evaluateSSLRisk = (sslInfo: SSLInfo): "LOW" | "MEDIUM" | "HIGH" => {
   // Default risk level if the issuer is not recognized
   return "MEDIUM";
 };
-
-export default evaluateSSLRisk;

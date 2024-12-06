@@ -1,6 +1,7 @@
 import net from "net";
 
 type WhoisServerMap = { [tld: string]: string };
+
 const WHOIS_SERVERS: WhoisServerMap = {
   com: "whois.verisign-grs.com",
   org: "whois.pir.org",
@@ -32,35 +33,65 @@ const WHOIS_SERVERS: WhoisServerMap = {
   se: "whois.iis.se",
 };
 
-const whoisQuery = async (
-  hostname: string,
-  tld: string
-): Promise<string | null> => {
-  const whoisServer = WHOIS_SERVERS[tld];
+const IANA_WHOIS = "whois.iana.org";
 
-  if (!whoisServer) {
-    return null;
-  }
-
+const queryServer = (hostname: string, server: string): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const client = net.createConnection(43, whoisServer, () => {
+    const client = new net.Socket();
+    let data = "";
+
+    const timeout = setTimeout(() => {
+      client.destroy();
+      reject(new Error("Connection timeout"));
+    }, 10000);
+
+    client.connect(43, server, () => {
       client.write(`${hostname}\r\n`);
     });
-
-    let data = "";
 
     client.on("data", (chunk) => {
       data += chunk.toString();
     });
 
     client.on("end", () => {
+      clearTimeout(timeout);
       resolve(data);
     });
 
     client.on("error", (err) => {
+      clearTimeout(timeout);
       reject(err);
     });
   });
 };
 
-export default whoisQuery;
+export const whoisQuery = async (
+  hostname: string,
+  tld: string
+): Promise<string | null> => {
+  const whoisServer = WHOIS_SERVERS[tld];
+
+  if (whoisServer) {
+    try {
+      const result = await queryServer(hostname, whoisServer);
+      return result;
+    } catch (error) {
+      console.error(`Direct WHOIS query failed: ${error}`);
+    }
+  }
+
+  // Fallback: Query IANA to find the correct WHOIS server
+  try {
+    const ianaResponse = await queryServer(hostname, IANA_WHOIS);
+    const whoisServerMatch = ianaResponse.match(/whois:\s+(.*)/i);
+
+    if (whoisServerMatch && whoisServerMatch[1]) {
+      const discoveredWhoisServer = whoisServerMatch[1].trim();
+      return await queryServer(hostname, discoveredWhoisServer);
+    }
+  } catch (error) {
+    console.error(`IANA fallback query failed: ${error}`);
+  }
+
+  return null;
+};
