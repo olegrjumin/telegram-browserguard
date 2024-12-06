@@ -1,6 +1,6 @@
 import trustedEmailProviders from "./json/trustedEmailProviders.json";
 
-const evaluateMXRecordsRisk = (
+export const evaluateMXRecordsRisk = (
   mxRecords: { exchange: string; priority: number }[]
 ): string => {
   let highRisk = false;
@@ -33,5 +33,3 @@ const evaluateMXRecordsRisk = (
     return "LOW";
   }
 };
-
-export default evaluateMXRecordsRisk;

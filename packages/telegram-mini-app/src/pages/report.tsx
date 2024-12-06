@@ -1,28 +1,7 @@
 import { AlertCircle, Check, ExternalLink, Shield } from "lucide-react";
+import { UnifiedReport } from "./types";
 
-interface SecurityReportProps {
-  report: {
-    url: string;
-    screenshotBase64: string;
-    contentAnalysis: {
-      purpose: string;
-      risks: string[];
-      riskScore: number;
-      mainTopics: string[];
-      targetAudience: string;
-    };
-    redirectAnalysis: {
-      totalRedirects: number;
-      chain: Array<{
-        type: string;
-        statusCode: number;
-        url: string;
-      }>;
-    };
-  };
-}
-
-export const SecurityReport = ({ report }: SecurityReportProps) => {
+export const SecurityReport = ({ report }: { report: UnifiedReport }) => {
   const getRiskColor = (score: number) => {
     if (score < 30) return "bg-green-500";
     if (score < 70) return "bg-yellow-500";
@@ -160,12 +139,12 @@ export const SecurityReport = ({ report }: SecurityReportProps) => {
                   Total Redirects:
                 </span>
                 <span className="text-gray-700">
-                  {report.redirectAnalysis.totalRedirects}
+                  {report.securityData.redirects.totalRedirects}
                 </span>
               </div>
 
               <div className="space-y-3">
-                {report.redirectAnalysis.chain.map((redirect, index) => (
+                {report.securityData.redirects.chain.map((redirect, index) => (
                   <div
                     key={index}
                     className="bg-gray-50 rounded-lg p-4 border border-gray-200"

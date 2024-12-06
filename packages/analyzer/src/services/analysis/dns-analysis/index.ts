@@ -1,49 +1,19 @@
-import {
-  getIPAddresses,
-  getMXRecords,
-  getTXTRecords,
-  getIPGeolocationInfo,
-  getWildcardDomain,
-} from "./data-retrieval";
-import evaluateIpGeolocationRisk from "./risk/ipGeolocationRisk";
-import evaluateMXRecordsRisk from "./risk/mxRecordsRisk";
-import evaluateTXTRecordsRisk from "./risk/txtRecordsRisk";
+import { Dns } from "@/types";
+import { checkWildcardDomain } from "./check-wildcard-domain";
+import { getIPAddresses, getMXRecords, getTXTRecords } from "./dns";
+import { getIPGeolocationInfo } from "./get-ip-geolocation-info";
 
-const dnsAnalysis = async (url: string): Promise<any> => {
-  try {
-    const addresses = await getIPAddresses(url);
+export const getDnsRawData = async (url: string): Promise<Dns> => {
+  const addresses = await getIPAddresses(url);
+  const ipGeolocationInfo = await getIPGeolocationInfo(addresses);
+  const txtRecords = await getTXTRecords(url);
+  const mxRecords = await getMXRecords(url);
+  const isWildcardDomain = await checkWildcardDomain(url);
 
-    const [ipGeolocationInfo, txtRecords, mxRecords, wildcard] =
-      await Promise.all([
-        getIPGeolocationInfo(addresses),
-        getTXTRecords(url),
-        getMXRecords(url),
-        getWildcardDomain(url),
-      ]);
-
-    let ipGeolocationRisk = "LOW";
-    ipGeolocationInfo.forEach((ipGeo) => {
-      const risk = evaluateIpGeolocationRisk(ipGeo);
-      if (risk === "HIGH") {
-        ipGeolocationRisk = "HIGH";
-      } else if (risk === "MEDIUM" && ipGeolocationRisk === "LOW") {
-        ipGeolocationRisk = "MEDIUM";
-      }
-    });
-
-    const txtRecordsRisk: string = evaluateTXTRecordsRisk(txtRecords[0]);
-    const mxRecordsRisk: string = evaluateMXRecordsRisk(mxRecords);
-    const wildcardRisk = wildcard ? "HIGH" : "LOW";
-
-    return {
-      ipGeolocationRisk,
-      txtRecordsRisk,
-      mxRecordsRisk,
-      wildcardRisk,
-    };
-  } catch (error: any) {
-    throw new Error(error);
-  }
+  return {
+    ipGeolocationInfo,
+    txtRecords,
+    mxRecords,
+    isWildcardDomain,
+  };
 };
-
-export default dnsAnalysis;

@@ -1,39 +1,15 @@
+import { IpGeolocationResponse, RiskLevel } from "@/types";
 import highRiskCountries from "./json/highRiskCountris.json";
 import mediumRiskCountries from "./json/mediumRiskCountries.json";
 import trustedISPs from "./json/trustedISPs.json";
 import untrustedISPs from "./json/untrustedISPs.json";
 
-interface GeoInfo {
-  ip: string;
-  continent_code?: string;
-  continent_name?: string;
-  country_code2: string;
-  country_code3: string;
-  country_name: string;
-  country_name_official: string;
-  city: string;
-  zipcode: string;
-  latitude: string;
-  longitude: string;
-  is_eu: false;
-  geoname_id: string;
-  isp?: string;
-  currency?: {
-    code: string;
-    name: string;
-    symbol: string;
-  };
-}
-
-interface IpGeolocationResponse {
-  geoInfo: GeoInfo;
-}
-
-const evaluateIpGeolocationRisk = (
+export const evaluateIpGeolocationRisk = (
   ipGeolocationInfo: IpGeolocationResponse
-): string => {
+): RiskLevel => {
   const { geoInfo } = ipGeolocationInfo;
-  const { isp, country_name } = geoInfo;
+
+  const { isp, country_name } = geoInfo || {};
 
   let geoRisk = "LOW";
   if (highRiskCountries.includes(country_name)) {
@@ -70,4 +46,13 @@ const evaluateIpGeolocationRisk = (
   }
 };
 
-export default evaluateIpGeolocationRisk;
+export function aggregateIpRiskLevels(
+  ipGeolocationInfoArray: IpGeolocationResponse[]
+): RiskLevel {
+  return ipGeolocationInfoArray.reduce((highestRisk, ipGeo) => {
+    const currentRisk = evaluateIpGeolocationRisk(ipGeo);
+    if (highestRisk === "HIGH" || currentRisk === "HIGH") return "HIGH";
+    if (currentRisk === "MEDIUM") return "MEDIUM";
+    return highestRisk;
+  }, "LOW" as RiskLevel);
+}

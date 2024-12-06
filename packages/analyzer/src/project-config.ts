@@ -17,6 +17,7 @@ interface Config {
   BLOB_READ_WRITE_TOKEN: string;
   ENABLE_STORAGE: boolean;
   OPENAI_API_KEY: string;
+  IP_GEOLOCATION_API_KEY: string;
 }
 
 export const config: Config = {
@@ -25,6 +26,7 @@ export const config: Config = {
   BLOB_READ_WRITE_TOKEN: requireEnv("BLOB_READ_WRITE_TOKEN"),
   ENABLE_STORAGE: requireEnv("ENABLE_STORAGE") === "true",
   OPENAI_API_KEY: requireEnv("OPENAI_API_KEY"),
+  IP_GEOLOCATION_API_KEY: requireEnv("IP_GEOLOCATION_API_KEY"),
 };
 
 export const isDevelopment = () => config.NODE_ENV === "development";

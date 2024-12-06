@@ -1,56 +1,20 @@
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SecurityReport } from "./report";
+import { UnifiedReport } from "./types";
 
-export interface ContentAnalysis {
-  purpose: string;
-  risks: string[];
-  isScam: boolean;
-  riskScore: number;
-  mainTopics: string[];
-  targetAudience: string;
-}
+// const mapToNumberArray = (base64: string) => {
+//   return base64.split(",").map(Number);
+// };
 
-export interface RedirectData {
-  url: string;
-  statusCode: number;
-  headers: Record<string, string>;
-  type: "http" | "js" | "meta";
-}
-
-export interface RedirectAnalysis {
-  chain: RedirectData[];
-  finalUrl: string;
-  totalRedirects: number;
-}
-
-export interface ScreenshotAPIResponse {
-  imageBuffer: Buffer;
-  redirectAnalysis: RedirectAnalysis;
-  contentAnalysis: ContentAnalysis;
-  blobUrl: string;
-}
-
-export interface UnifiedReport {
-  url: string;
-  timestamp: number;
-  screenshotBase64: string;
-  contentAnalysis: ContentAnalysis;
-  redirectAnalysis: RedirectAnalysis;
-}
-
-const mapToNumberArray = (base64: string) => {
-  return base64.split(",").map(Number);
-};
-
-const getBase64Image = (numbers: number[]) => {
-  const uint8Array = new Uint8Array(numbers);
-  let binaryString = "";
-  uint8Array.forEach((byte) => {
-    binaryString += String.fromCharCode(byte);
-  });
-  return btoa(binaryString);
-};
+// const getBase64Image = (numbers: number[]) => {
+//   const uint8Array = new Uint8Array(numbers);
+//   let binaryString = "";
+//   uint8Array.forEach((byte) => {
+//     binaryString += String.fromCharCode(byte);
+//   });
+//   return btoa(binaryString);
+// };
 
 export const Home = () => {
   const startParam = new URLSearchParams(window.location.search).get("url");
@@ -75,7 +39,8 @@ export const Home = () => {
         const data = await response.json();
         console.log("🚀 ~ fetchReport ~ data:", data);
 
-        const base64Image = `data:image/png;base64,${getBase64Image(mapToNumberArray(data.screenshotBase64))}`;
+        // const base64Image = `data:image/png;base64,${getBase64Image(mapToNumberArray(data.screenshotBase64))}`;
+        const base64Image = `data:image/png;base64,${data.screenshotBase64}`;
         setReport({ ...data, screenshotBase64: base64Image });
       } catch (err) {
         if (err instanceof Error) {

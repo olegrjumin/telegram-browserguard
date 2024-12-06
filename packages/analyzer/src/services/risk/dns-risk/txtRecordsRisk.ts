@@ -1,9 +1,19 @@
-const evaluateTXTRecordsRisk = (txtRecords: string[]): string => {
+import { RiskLevel } from "@/types";
+
+export const evaluateTXTRecordsRisk = (txtRecords: string[][]): RiskLevel => {
   let hasValidConfiguration = false;
   let suspiciousEntries = false;
 
+  if (
+    !Array.isArray(txtRecords) ||
+    txtRecords.length === 0 ||
+    !txtRecords.every((record) => Array.isArray(record) && record.length > 0)
+  ) {
+    return "HIGH";
+  }
+
   txtRecords.forEach((record) => {
-    const lowerRecord = record.toLowerCase();
+    const lowerRecord = record[0].toLowerCase();
 
     // Check for valid SPF, DKIM, or DMARC configurations
     if (
@@ -32,5 +42,3 @@ const evaluateTXTRecordsRisk = (txtRecords: string[]): string => {
     return "MEDIUM"; // No valid configuration but no suspicious entries
   }
 };
-
-export default evaluateTXTRecordsRisk;

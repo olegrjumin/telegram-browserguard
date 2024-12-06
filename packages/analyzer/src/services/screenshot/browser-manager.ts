@@ -1,11 +1,6 @@
-import { config, isStorageEnabled } from "@/project-config";
-import { ContentAnalysis, RedirectAnalysis, UnifiedReport } from "@/types";
 import puppeteer, { Browser, Page } from "puppeteer-core";
-import { OpenAIClient } from "../../lib/openai-client";
-import { ContentAnalyzer } from "../analysis/content-analyzer";
 import { RedirectAnalyzer } from "../analysis/redirect-analyzer";
 import { RequestMonitor } from "../analysis/request-monitor";
-import { storage } from "../storage";
 import { browserConfig } from "./browser-config";
 import { waitForLoadingComplete } from "./loading-detector";
 import { SupportedFormat } from "./types";
@@ -21,15 +16,11 @@ export class BrowserManager {
   private static instance: BrowserManager;
   private requestMonitor: RequestMonitor;
   private redirectAnalyzer: RedirectAnalyzer;
-  private contentAnalyzer: ContentAnalyzer;
-  private openai: OpenAIClient;
   private browser: Browser | null;
   private isInitializing: boolean;
   private initPromise: Promise<Browser> | null;
 
   constructor() {
-    this.openai = new OpenAIClient(config.OPENAI_API_KEY);
-    this.contentAnalyzer = new ContentAnalyzer(this.openai);
     this.redirectAnalyzer = new RedirectAnalyzer();
     this.requestMonitor = new RequestMonitor();
 
@@ -157,51 +148,72 @@ export class BrowserManager {
   }
 
   async extractContent(page: Page): Promise<ExtractedContent> {
-    const content = await page.evaluate(() => ({
-      title: document.title,
-      metaDescription:
-        (document.querySelector('meta[name="description"]') as HTMLMetaElement)
-          ?.content || "",
-      mainContent: document.body.innerText.substring(0, 3000),
-      links: Array.from(document.querySelectorAll("a")).map((a) => a.href),
-    }));
+    const content = await page.evaluate(() => {
+      // Strict limits for all fields
+      const LIMITS = {
+        TITLE: 200,
+        META: 300,
+        CONTENT: 2000,
+        LINKS: 20,
+        LINK_LENGTH: 100,
+      };
+
+      // Clean and limit text content
+      const cleanText = (text: string, limit: number) =>
+        text?.replace(/\s+/g, " ").trim().substring(0, limit) || "";
+
+      // Clean and limit URL
+      const cleanUrl = (url: string) => {
+        try {
+          const urlObj = new URL(url);
+          return urlObj.toString().substring(0, LIMITS.LINK_LENGTH);
+        } catch {
+          return "";
+        }
+      };
+
+      // Get important links but limit them
+      const links = Array.from(document.querySelectorAll("a"))
+        .map((a) => cleanUrl(a.href))
+        .filter(
+          (href) =>
+            href &&
+            !href.startsWith("javascript:") &&
+            !href.startsWith("mailto:") &&
+            !href.startsWith("tel:")
+        )
+        .slice(0, LIMITS.LINKS);
+
+      // Main content with priority sections
+      const mainContentElements = document.querySelector(
+        'article, main, [role="main"]'
+      );
+      const mainContent = mainContentElements
+        ? cleanText(mainContentElements.textContent || "", LIMITS.CONTENT)
+        : cleanText(document.body.textContent || "", LIMITS.CONTENT);
+
+      return {
+        title: cleanText(document.title, LIMITS.TITLE),
+        metaDescription: cleanText(
+          (
+            document.querySelector(
+              'meta[name="description"]'
+            ) as HTMLMetaElement
+          )?.content,
+          LIMITS.META
+        ),
+        mainContent,
+        links,
+      };
+    });
 
     return content;
-  }
-
-  private async uploadReport({
-    imageBuffer,
-    userId,
-    contentAnalysis,
-    redirectAnalysis,
-  }: {
-    imageBuffer: Buffer;
-    userId: number;
-    contentAnalysis: ContentAnalysis;
-    redirectAnalysis: RedirectAnalysis;
-  }): Promise<string | undefined> {
-    if (!isStorageEnabled()) return undefined;
-
-    const screenshotBase64 = imageBuffer.toString("base64");
-
-    const report: UnifiedReport = {
-      url: redirectAnalysis.finalUrl,
-      timestamp: Date.now(),
-      screenshotBase64,
-      contentAnalysis,
-      redirectAnalysis,
-    };
-
-    const { url } = await storage.storeUnifiedReport(userId, report);
-    console.log(`Uploaded report to ${url}`);
-    return url;
   }
 
   async takeScreenshot(
     url: string,
     format: SupportedFormat = "png",
-    quality = 60,
-    userId: number
+    quality: number = 60
   ) {
     let page = null;
 
@@ -216,22 +228,10 @@ export class BrowserManager {
       )) as Buffer;
 
       const content = await this.extractContent(page);
-      const contentAnalysis = await this.contentAnalyzer.analyze(content);
-      const redirectAnalysis = this.redirectAnalyzer.getAnalysis(page.url());
-
-      const blobUrl = await this.uploadReport({
-        imageBuffer,
-        userId,
-        contentAnalysis,
-        redirectAnalysis,
-      });
 
       return {
+        content,
         imageBuffer: Array.from(new Uint8Array(imageBuffer)),
-        metrics: { requests: this.requestMonitor.getMetrics() },
-        blobUrl,
-        contentAnalysis,
-        redirectAnalysis,
       };
     } finally {
       if (page) {

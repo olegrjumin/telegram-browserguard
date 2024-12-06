@@ -1,3 +1,4 @@
+import { getSSLInfo } from "@/services/analysis/get-ssl-info";
 import trustedIssuers from "./json/trustedIssuers.json";
 import untrustedIssuers from "./json/untrustedIssuers.json";
 
@@ -9,7 +10,9 @@ interface SSLInfo {
   daysRemaining: number;
 }
 
-const evaluateSSLRisk = (sslInfo: SSLInfo): "LOW" | "MEDIUM" | "HIGH" => {
+export const evaluateSSLRisk = (
+  sslInfo: SSLInfo
+): "LOW" | "MEDIUM" | "HIGH" => {
   const { valid, daysRemaining, issuer } = sslInfo;
 
   if (!valid) {
@@ -36,4 +39,19 @@ const evaluateSSLRisk = (sslInfo: SSLInfo): "LOW" | "MEDIUM" | "HIGH" => {
   return "MEDIUM";
 };
 
-export default evaluateSSLRisk;
+export const sslAnalysis = async (url: string) => {
+  try {
+    const sslInfo = await getSSLInfo(url);
+    if (!sslInfo) {
+      return { sslRisk: "HIGH" };
+    }
+    const sslRisk = evaluateSSLRisk(sslInfo);
+
+    return {
+      sslRisk,
+    };
+  } catch (error: unknown) {
+    console.error(error);
+    return { sslRisk: "INCONCLUSIVE" };
+  }
+};

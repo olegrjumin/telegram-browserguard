@@ -1,6 +1,6 @@
-import { getScreenshot } from "@/core/api";
+import { getAll } from "@/core/api";
 import { config } from "@/project-config";
-import { BotContext } from "@/types";
+import { BotContext } from "@/types/session";
 import type { queueAsPromised } from "fastq";
 import fastq from "fastq";
 import { RateLimiter } from "limiter";
@@ -34,7 +34,24 @@ function getUserLimiter(userId: number): RateLimiter {
   return userLimiters.get(userId)!;
 }
 
-function createMiniAppButton(url: string) {
+function createMiniAppButton(url: string, ctx: BotContext) {
+  const isGroup = ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
+
+  if (isGroup) {
+    return {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "📊 View Analysis",
+              url: `${config.MINI_APP_URL}?url=${encodeURIComponent(url)}`,
+            },
+          ],
+        ],
+      },
+    };
+  }
+
   return {
     reply_markup: {
       inline_keyboard: [
@@ -51,43 +68,54 @@ function createMiniAppButton(url: string) {
   };
 }
 
+// async function processUrl(task: Task) {
+//   const { ctx, url } = task;
+//   try {
+//     const statusMessage = await ctx.reply(`🔄 Processing: ${url}`);
+//     const userId = ctx.message!.from.id;
+//     const { imageBuffer, contentAnalysis } = await getScreenshot(url);
+
+//     const { securityAnalysis, securityData } = await getRawData(url);
+
+//     const { blobUrl } = await saveReport({
+//       url,
+//       userId,
+//       screenshotBase64: Buffer.from(imageBuffer).toString("base64"),
+//       contentAnalysis,
+//       securityData,
+//       securityAnalysis,
+//     });
+
+//     if (imageBuffer) {
+//       await ctx.replyWithPhoto({ source: Buffer.from(imageBuffer) });
+
+//       await ctx.reply(blobUrl, {
+//         parse_mode: "Markdown",
+//         ...createMiniAppButton(blobUrl, ctx),
+//       });
+//     }
+
+//     await ctx.telegram.deleteMessage(ctx.chat!.id, statusMessage.message_id);
+//   } catch (error) {
+//     await ctx.reply(`❌ Failed to process: ${url}`);
+//     console.error(`Error processing URL ${url}:`, error);
+//   }
+// }
+
 async function processUrl(task: Task) {
   const { ctx, url } = task;
   try {
     const statusMessage = await ctx.reply(`🔄 Processing: ${url}`);
-    const { buffer, contentAnalysis, redirectAnalysis, blobUrl } =
-      await getScreenshot({
-        url,
-        userId: ctx.message!.from.id,
-      });
+    const userId = ctx.message!.from.id;
 
-    if (buffer) {
-      await ctx.replyWithPhoto({ source: buffer });
-      const redirectInfo = redirectAnalysis.chain
-        .map((redirect) => `${redirect.url} (${redirect.statusCode})`)
-        .join("\n→ ");
+    const { blobUrl, imageBuffer } = await getAll(url, userId);
 
-      const analysisMessage = [
-        `*Content Analysis*`,
-        ``,
-        `*Purpose:* ${contentAnalysis.purpose}`,
-        `*Risk Score:* ${contentAnalysis.riskScore}/100`,
-        `*Potential Risks:*`,
-        ...contentAnalysis.risks.map((risk) => `• ${risk}`),
-        ``,
-        `*Main Topics:*`,
-        ...contentAnalysis.mainTopics.map((topic) => `• ${topic}`),
-        ``,
-        `*Target Audience:* ${contentAnalysis.targetAudience}`,
-        ``,
-        `*Redirect Chain:*`,
-        redirectInfo,
-        `Total Redirects: ${redirectAnalysis.totalRedirects}`,
-      ].join("\n");
+    if (imageBuffer) {
+      await ctx.replyWithPhoto({ source: Buffer.from(imageBuffer) });
 
-      await ctx.reply(analysisMessage, {
+      await ctx.reply(blobUrl, {
         parse_mode: "Markdown",
-        ...createMiniAppButton(blobUrl),
+        ...createMiniAppButton(blobUrl, ctx),
       });
     }
 
