@@ -1,3 +1,4 @@
+import { Message } from "telegraf/types";
 import { getDomain, getHostname, parse } from "tldts";
 
 export function isValidDomain(text: string): boolean {
@@ -47,4 +48,24 @@ export function extractUrls(text: string): string[] {
       return isValidDomain(hostname) ? normalizeUrl(url) : null;
     })
     .filter((url): url is string => url !== null);
+}
+
+export function getUrlsFromMessageEntities(
+  message: Message.TextMessage
+): string[] {
+  const urls: string[] = [];
+
+  if (message.entities) {
+    message.entities.forEach((entity) => {
+      if (entity.type === "text_link" && entity.url) {
+        urls.push(entity.url);
+      }
+    });
+  }
+
+  if (message.text) {
+    urls.push(...extractUrls(message.text));
+  }
+
+  return [...new Set(urls)];
 }
