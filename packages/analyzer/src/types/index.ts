@@ -67,6 +67,7 @@ export interface SSLInfo {
   issuer: string | null;
   valid: boolean;
   daysRemaining: number;
+  validationError?: string;
 }
 
 export type SSLInfoRawData = SSLInfo | null;

@@ -1,5 +1,4 @@
 import puppeteer, { Browser, Page } from "puppeteer-core";
-import { RedirectAnalyzer } from "../analysis/redirect-analyzer";
 import { RequestMonitor } from "../analysis/request-monitor";
 import { browserConfig } from "./browser-config";
 import { waitForLoadingComplete } from "./loading-detector";
@@ -15,13 +14,11 @@ export interface ExtractedContent {
 export class BrowserManager {
   private static instance: BrowserManager;
   private requestMonitor: RequestMonitor;
-  private redirectAnalyzer: RedirectAnalyzer;
   private browser: Browser | null;
   private isInitializing: boolean;
   private initPromise: Promise<Browser> | null;
 
   constructor() {
-    this.redirectAnalyzer = new RedirectAnalyzer();
     this.requestMonitor = new RequestMonitor();
 
     this.browser = null;
@@ -115,12 +112,16 @@ export class BrowserManager {
       browserConfig.navigation.timeout || 15000
     );
     await page.setCacheEnabled(false);
-    await this.redirectAnalyzer.attachToPage(page);
+    await page.setBypassCSP(true);
+
+    const client = await page.createCDPSession();
+    await client.send("Security.setIgnoreCertificateErrors", {
+      ignore: true,
+    });
     this.requestMonitor.attachToPage(page);
   }
 
   async navigateWithRetry(page: Page, url: string) {
-    this.redirectAnalyzer.startTracking(url);
     try {
       console.log(`Navigating to ${url}`);
       await page.goto(url, browserConfig.navigation);
@@ -143,8 +144,6 @@ export class BrowserManager {
         checkInterval: 100,
       });
     }
-
-    await this.redirectAnalyzer.checkMetaRefresh(page);
   }
 
   async extractContent(page: Page): Promise<ExtractedContent> {
