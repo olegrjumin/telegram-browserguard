@@ -1,5 +1,5 @@
 import { getAll } from "@/core/api";
-import { config } from "@/project-config";
+import { config, isDevelopment } from "@/project-config";
 import { BotContext } from "@/types/session";
 import type { queueAsPromised } from "fastq";
 import fastq from "fastq";
@@ -64,18 +64,40 @@ function createMiniAppButton(url: string, ctx: BotContext) {
   };
 }
 
+const getRecommendation = (contentScore: number, technicalScore: number) => {
+  const avgScore = (contentScore + technicalScore) / 2;
+  if (avgScore >= 70)
+    return "⛔️ This link appears to be high risk. Exercise extreme caution.";
+  if (avgScore >= 40)
+    return "⚠️ This link shows some risk factors. Proceed with caution.";
+  return "✅ This link appears to be relatively safe, but always be vigilant.";
+};
+
 async function processUrl(task: Task) {
   const { ctx, url } = task;
   try {
     const statusMessage = await ctx.reply(`🔄 Processing: ${url}`);
     const userId = ctx.message!.from.id;
 
-    const { blobUrl, imageBuffer } = await getAll(url, userId);
+    const {
+      blobUrl,
+      imageBuffer,
+      contentAnalysisRiskScore,
+      securityAnalysisRiskScore,
+    } = await getAll(url, userId);
 
     if (imageBuffer) {
       await ctx.replyWithPhoto({ source: Buffer.from(imageBuffer) });
 
-      await ctx.reply(blobUrl, {
+      let message = `🔍 *Analysis Result:*\n\n${getRecommendation(
+        contentAnalysisRiskScore,
+        securityAnalysisRiskScore
+      )}\nFor detailed analysis, click button below.\n\n`;
+
+      if (isDevelopment()) {
+        message += `🔗 [View detailed analysis (DEV ONLY)](${blobUrl})`;
+      }
+      await ctx.reply(message, {
         parse_mode: "Markdown",
         ...createMiniAppButton(blobUrl, ctx),
       });

@@ -112,12 +112,6 @@ export class BrowserManager {
       browserConfig.navigation.timeout || 15000
     );
     await page.setCacheEnabled(false);
-    await page.setBypassCSP(true);
-
-    const client = await page.createCDPSession();
-    await client.send("Security.setIgnoreCertificateErrors", {
-      ignore: true,
-    });
     this.requestMonitor.attachToPage(page);
   }
 

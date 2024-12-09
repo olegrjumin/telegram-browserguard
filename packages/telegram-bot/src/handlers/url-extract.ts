@@ -10,7 +10,7 @@ export function normalizeUrl(url: string): string {
   if (url.startsWith("http://") || url.startsWith("https://")) {
     return url;
   }
-  return `http://${url}`;
+  return `https://${url}`;
 }
 
 export function extractUrls(text: string): string[] {
