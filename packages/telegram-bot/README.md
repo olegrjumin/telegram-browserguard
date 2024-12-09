@@ -49,9 +49,11 @@
 2. If you have a group, add the bot to the group
 3. Give the bot admin permissions
 4. Done! The bot is now installed in the group
+5. Start sending links to the chat, bot will respond with analysis
 
 # How to use the bot inline
 
 1. Find the bot in the search bar: @browserguard_bot
 2. Start a chat with the bot, by typing @browserguard_bot in the search bar
 3. Example: @browserguard_bot google.com
+4. After sending to a chat, bot will respond with analysis
