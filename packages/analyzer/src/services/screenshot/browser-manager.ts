@@ -2,6 +2,7 @@ import puppeteer, { Browser, Page } from "puppeteer-core";
 import { RequestMonitor } from "../analysis/request-monitor";
 import { browserConfig } from "./browser-config";
 import { waitForLoadingComplete } from "./loading-detector";
+import { TwitterPageHandler } from "./twitter-handler";
 import { SupportedFormat } from "./types";
 
 export interface ExtractedContent {
@@ -105,14 +106,18 @@ export class BrowserManager {
     return this.initPromise;
   }
 
-  async setupPage(page: Page) {
-    await page.setViewport(browserConfig.viewport);
-    await page.setRequestInterception(true);
-    await page.setDefaultNavigationTimeout(
-      browserConfig.navigation.timeout || 15000
-    );
-    await page.setCacheEnabled(false);
-    this.requestMonitor.attachToPage(page);
+  async setupPage(page: Page, url: string) {
+    if (TwitterPageHandler.isTwitterUrl(url)) {
+      await TwitterPageHandler.configureForTwitter(page);
+    } else {
+      await page.setViewport(browserConfig.viewport);
+      await page.setRequestInterception(true);
+      await page.setDefaultNavigationTimeout(
+        browserConfig.navigation.timeout || 15000
+      );
+      await page.setCacheEnabled(false);
+      this.requestMonitor.attachToPage(page);
+    }
   }
 
   async navigateWithRetry(page: Page, url: string) {
@@ -213,7 +218,7 @@ export class BrowserManager {
     try {
       await this.initBrowser();
       page = await this.browser!.newPage(); // "!" because browser is initialized
-      await this.setupPage(page);
+      await this.setupPage(page, url);
       await this.navigateWithRetry(page, url);
 
       const imageBuffer = (await page.screenshot(
