@@ -1,3 +1,18 @@
+export interface PageValidity {
+  isValid: boolean;
+  hasContent: boolean;
+  isError: boolean;
+  errorType: string | null;
+}
+
+export interface PhishingIndicators {
+  credentialCollection: boolean;
+  brandImpersonation: boolean;
+  urgencyTactics: boolean;
+  suspiciousLinks: boolean;
+  poorQuality: boolean;
+}
+
 export interface ContentAnalysis {
   purpose: string;
   risks: string[];
@@ -5,6 +20,8 @@ export interface ContentAnalysis {
   riskScore: number;
   mainTopics: string[];
   targetAudience: string;
+  pageValidity: PageValidity;
+  phishingIndicators: PhishingIndicators;
 }
 
 export interface UnifiedReport {
@@ -59,6 +76,16 @@ export type IpGeolocationResponse = {
   geoInfo: GeoInfo;
 };
 
+export type DnsError = {
+  message: string;
+  type: "NXDOMAIN" | "SERVFAIL" | "TIMEOUT" | "UNKNOWN";
+};
+
+export type DnsResult = {
+  status: "success" | "error";
+  error?: DnsError;
+};
+
 export type Dns = {
   ipGeolocationInfo: IpGeolocationResponse[];
   txtRecords: string[][];
@@ -67,6 +94,7 @@ export type Dns = {
     priority: number;
   }>;
   isWildcardDomain: boolean;
+  result: DnsResult;
 };
 
 // Domain age

@@ -1,19 +1,26 @@
 import { Dns } from "@/types";
+import { extractHostname } from "@/utils/extract-hostname";
 import { checkWildcardDomain } from "./check-wildcard-domain";
-import { getIPAddresses, getMXRecords, getTXTRecords } from "./dns";
+import { getDNSAddresses, getMXRecords, getTXTRecords } from "./dns";
 import { getIPGeolocationInfo } from "./get-ip-geolocation-info";
 
 export const getDnsRawData = async (url: string): Promise<Dns> => {
-  const addresses = await getIPAddresses(url);
-  const ipGeolocationInfo = await getIPGeolocationInfo(addresses);
-  const txtRecords = await getTXTRecords(url);
-  const mxRecords = await getMXRecords(url);
-  const isWildcardDomain = await checkWildcardDomain(url);
+  const hostname = extractHostname(url);
+  const { addresses, result } = await getDNSAddresses(hostname);
+
+  const [ipGeolocationInfo, txtRecords, mxRecords, isWildcardDomain] =
+    await Promise.all([
+      addresses.length > 0 ? getIPGeolocationInfo(addresses) : [],
+      getTXTRecords(hostname),
+      getMXRecords(hostname),
+      checkWildcardDomain(url),
+    ]);
 
   return {
     ipGeolocationInfo,
     txtRecords,
     mxRecords,
     isWildcardDomain,
+    result,
   };
 };

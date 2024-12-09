@@ -1,4 +1,6 @@
 import express, { Request, Response } from "express";
+import { promises as fs } from "node:fs";
+import path from "node:path";
 import { OpenAIClient } from "./lib/openai-client";
 import { config } from "./project-config";
 import { AIRiskAnalyzer } from "./services/analysis/ai-risk-analyzer";
@@ -82,11 +84,31 @@ app.post("/all", async (req: Request, res: Response) => {
     }
 
     // 1. Take screenshot and analyze content
-    const { content, imageBuffer } = await browserManager.takeScreenshot(
-      url,
-      format,
-      quality
-    );
+    let content;
+    let imageBuffer;
+
+    try {
+      const screenshotResult = await browserManager.takeScreenshot(
+        url,
+        format,
+        quality
+      );
+
+      content = screenshotResult.content;
+      imageBuffer = screenshotResult.imageBuffer;
+    } catch (error) {
+      imageBuffer = await fs.readFile(
+        path.join(__dirname, "./assets/screenshot-unavailable.png")
+      );
+
+      content = {
+        title: url,
+        metaDescription: "",
+        mainContent: "",
+        links: [url],
+      };
+    }
+
     const contentAnalysis = await contentAnalyzer.analyze(content);
 
     // 2. Perform security analysis
@@ -109,10 +131,10 @@ app.post("/all", async (req: Request, res: Response) => {
     const report: UnifiedReport = {
       url,
       timestamp: Date.now(),
-      screenshotBase64: Buffer.from(imageBuffer).toString("base64"),
       contentAnalysis,
       securityData,
       securityAnalysis,
+      screenshotBase64: Buffer.from(imageBuffer).toString("base64"),
     };
 
     const { url: blobUrl } = await storage.storeUnifiedReport(userId, report);
@@ -121,6 +143,8 @@ app.post("/all", async (req: Request, res: Response) => {
     res.json({
       imageBuffer,
       blobUrl,
+      contentAnalysisRiskScore: contentAnalysis.riskScore,
+      securityAnalysisRiskScore: securityAnalysis.riskScore,
     });
   } catch (error) {
     console.error("Screenshot error:", error);

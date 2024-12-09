@@ -69,3 +69,4 @@ sw.*
 *.crt
 *.key
 *.pem
+.ssh

@@ -1,4 +1,5 @@
 import { MAX_TIMEOUT } from "@/constants";
+import { DnsError, DnsResult } from "@/types";
 import { extractHostname } from "@/utils/extract-hostname";
 import { withTimeout } from "@/utils/with-timeout";
 import dns, { promises as dnsPromises } from "node:dns";
@@ -22,6 +23,42 @@ export const getIPAddresses = (
       reject(`Invalid URL: ${new Error(err)?.message}`);
     }
   });
+};
+
+export const getDNSAddresses = async (
+  hostname: string
+): Promise<{ addresses: string[]; result: DnsResult }> => {
+  try {
+    const addresses = await dnsPromises.resolve(hostname);
+    return {
+      addresses,
+      result: { status: "success" },
+    };
+  } catch (error) {
+    let dnsError: DnsError = {
+      message: "Unknown DNS error",
+      type: "UNKNOWN",
+    };
+
+    if (error instanceof Error) {
+      dnsError.message = error.message;
+      if (error.message.includes("ENOTFOUND")) {
+        dnsError.type = "NXDOMAIN";
+      } else if (error.message.includes("SERVFAIL")) {
+        dnsError.type = "SERVFAIL";
+      } else if (error.message.includes("TIMEOUT")) {
+        dnsError.type = "TIMEOUT";
+      }
+    }
+
+    return {
+      addresses: [],
+      result: {
+        status: "error",
+        error: dnsError,
+      },
+    };
+  }
 };
 
 export const getRecords = (url: string): Promise<dns.AnyRecord[]> => {
@@ -59,20 +96,18 @@ export const getCNAMERecords = async (url: string) => {
   }
 };
 
-export const getTXTRecords = async (url: string): Promise<string[][]> => {
+export const getTXTRecords = async (hostname: string): Promise<string[][]> => {
   try {
-    const mainDomain = extractHostname(url);
-    const txtRecords = await resolveTxt(mainDomain);
+    const txtRecords = await resolveTxt(hostname);
     return txtRecords;
   } catch (err) {
     return [];
   }
 };
 
-export const getMXRecords = async (url: string) => {
-  const mainDomain = extractHostname(url);
+export const getMXRecords = async (hostname: string) => {
   try {
-    const mxRecords = await resolveMx(mainDomain);
+    const mxRecords = await resolveMx(hostname);
     return mxRecords;
   } catch (err) {
     return [];

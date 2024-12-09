@@ -7,6 +7,8 @@ import {
 export type AllAPIResponse = {
   imageBuffer: Buffer;
   blobUrl: string;
+  contentAnalysisRiskScore: number;
+  securityAnalysisRiskScore: number;
 };
 export type ScreenshotAPIResponse = {
   imageBuffer: Buffer;

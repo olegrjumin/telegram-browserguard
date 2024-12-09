@@ -4,16 +4,42 @@ import type { UnifiedReport } from "./types";
 const Badge = ({
   color,
   children,
+  label,
 }: {
   color: string;
   children: React.ReactNode;
+  label?: string;
 }) => (
-  <span
-    className={`px-2 py-1 rounded text-xs font-medium ${color} text-nowrap
-  `}
-  >
-    {children}
-  </span>
+  <div className="flex flex-col items-end gap-1">
+    {label && <span className="text-xs text-gray-500">{label}</span>}
+    <span
+      className={`px-2 py-1 rounded text-xs font-medium ${color} text-nowrap`}
+    >
+      {children}
+    </span>
+  </div>
+);
+
+const RiskCard = ({
+  label,
+  level,
+  color,
+}: {
+  label: string;
+  level: string;
+  color: string;
+}) => (
+  <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-2 flex items-center justify-between w-full">
+    <div className="flex items-center gap-3">
+      <Shield className="w-5 h-5 text-gray-400" />
+      <span className="text-gray-600 font-medium">{label}</span>
+    </div>
+    <div
+      className={`px-2 py-1 rounded text-xs font-medium ${color} text-nowrap`}
+    >
+      {level}
+    </div>
+  </div>
 );
 
 const Section = ({
@@ -31,6 +57,20 @@ const Section = ({
   </div>
 );
 
+const URLLink = ({ url }: { url: string }) => {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-600 hover:text-blue-700 flex items-center gap-2 text-sm group max-w-full"
+    >
+      <span className="break-all">{url}</span>
+      <ExternalLink className="w-4 h-4 flex-shrink-0" />
+    </a>
+  );
+};
+
 const InfoCard = ({
   title,
   children,
@@ -45,12 +85,6 @@ const InfoCard = ({
 );
 
 export const SecurityReport = ({ report }: { report: UnifiedReport }) => {
-  const getRiskColor = (score: number) => {
-    if (score < 30) return "bg-green-500";
-    if (score < 70) return "bg-yellow-500";
-    return "bg-red-500";
-  };
-
   const getRiskBadgeColor = (level: string) => {
     switch (level?.toUpperCase()) {
       case "LOW":
@@ -64,33 +98,46 @@ export const SecurityReport = ({ report }: { report: UnifiedReport }) => {
     }
   };
 
+  const getContentRiskLevel = (score: number) => {
+    if (score < 30) return "LOW";
+    if (score < 70) return "MEDIUM";
+    return "HIGH";
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
         <Section title="">
-          <div className="flex items-center gap-3 mb-4">
-            <Shield className="w-8 h-8 text-blue-600" />
-            <h1 className="text-xl font-bold text-gray-900">
-              Security Analysis Report
-            </h1>
-          </div>
-          <div className="flex items-center justify-between space-x-2">
-            <a
-              href={report.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-700 flex items-center gap-2 text-sm"
-            >
-              {report.url}
-              <ExternalLink className="w-4 h-4" />
-            </a>
-            <Badge color={getRiskBadgeColor(report.securityAnalysis.riskLevel)}>
-              {report.securityAnalysis.riskLevel} RISK
-            </Badge>
+          <div className="space-y-4">
+            {/* Title and URL */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-4">
+              <div className="flex items-center gap-3 mb-3">
+                <Shield className="w-8 h-8 text-blue-600" />
+                <h1 className="text-lg font-bold text-gray-900">
+                  Security Analysis Report
+                </h1>
+              </div>
+              <URLLink url={report.url} />
+            </div>
+
+            {/* Risk Cards */}
+            <div className="space-y-2">
+              <RiskCard
+                label="Content Risk"
+                level={getContentRiskLevel(report.contentAnalysis.riskScore)}
+                color={getRiskBadgeColor(
+                  getContentRiskLevel(report.contentAnalysis.riskScore),
+                )}
+              />
+              <RiskCard
+                label="Technical Risk"
+                level={report.securityAnalysis.riskLevel}
+                color={getRiskBadgeColor(report.securityAnalysis.riskLevel)}
+              />
+            </div>
           </div>
         </Section>
-
         {/* Screenshot */}
         <Section title="Visual Capture">
           <img
@@ -109,20 +156,22 @@ export const SecurityReport = ({ report }: { report: UnifiedReport }) => {
             </InfoCard>
 
             {/* Risk Score */}
+
             <div>
               <h3 className="font-semibold text-gray-900 mb-3">
                 Risk Assessment
               </h3>
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 bg-gray-200 rounded-full h-3">
-                    <div
-                      className={`h-3 rounded-full ${getRiskColor(report.contentAnalysis.riskScore)}`}
-                      style={{ width: `${report.contentAnalysis.riskScore}%` }}
-                    />
-                  </div>
-                  <span className="font-mono text-gray-900 text-sm">
-                    {report.contentAnalysis.riskScore}/100
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <Badge
+                    color={getRiskBadgeColor(
+                      getContentRiskLevel(report.contentAnalysis.riskScore),
+                    )}
+                  >
+                    {getContentRiskLevel(report.contentAnalysis.riskScore)} RISK
+                  </Badge>
+                  <span className="text-sm text-gray-600">
+                    Score: {report.contentAnalysis.riskScore}/100
                   </span>
                 </div>
               </div>
@@ -170,90 +219,92 @@ export const SecurityReport = ({ report }: { report: UnifiedReport }) => {
         </Section>
 
         {/* Security Analysis */}
-        {report.securityData && (
-          <>
-            {/* Findings */}
-            <Section title="Security Analysis">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-gray-900 mb-3">
-                    Key Findings
-                  </h3>
-                  {report.securityAnalysis.findings.map((finding, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 bg-blue-50 p-3 rounded"
-                    >
-                      <Check className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                      <span className="text-gray-800">{finding}</span>
-                    </div>
-                  ))}
-                </div>
-                {report.securityAnalysis.redFlags.length > 0 && (
+        {report.securityData &&
+          (report.securityAnalysis.findings.length > 0 ||
+            report.securityAnalysis.redFlags.length > 0) && (
+            <>
+              {/* Findings */}
+              <Section title="Security Analysis">
+                <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <h3 className="font-semibold text-gray-900 mb-3">
-                      Red Flags
+                      Key Findings
                     </h3>
-                    {report.securityAnalysis.redFlags.map((flag, index) => (
+                    {report.securityAnalysis.findings.map((finding, index) => (
                       <div
                         key={index}
-                        className="flex items-center gap-2 bg-red-50 p-3 rounded"
+                        className="flex items-center gap-2 bg-blue-50 p-3 rounded"
                       >
-                        <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                        <span className="text-gray-800">{flag}</span>
+                        <Check className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                        <span className="text-gray-800">{finding}</span>
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
-            </Section>
-
-            {/* Redirect Analysis */}
-            {report.securityData.redirects.chain.length > 0 && (
-              <Section title="Redirect Analysis">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 bg-blue-50 p-3 rounded">
-                    <span className="font-semibold text-gray-900">
-                      Total Redirects:
-                    </span>
-                    <span className="text-gray-800">
-                      {report.securityData.redirects.totalRedirects}
-                    </span>
-                  </div>
-
-                  <div className="space-y-3">
-                    {report.securityData.redirects.chain.map(
-                      (redirect, index) => (
+                  {report.securityAnalysis.redFlags.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-gray-900 mb-3">
+                        Red Flags
+                      </h3>
+                      {report.securityAnalysis.redFlags.map((flag, index) => (
                         <div
                           key={index}
-                          className="bg-gray-50 p-4 rounded border border-gray-200"
+                          className="flex items-center gap-2 bg-red-50 p-3 rounded"
                         >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-mono bg-blue-100 px-2 py-1 rounded text-blue-800">
-                              {redirect.type.toUpperCase()}
-                            </span>
-                            <span className="text-xs font-mono bg-gray-200 px-2 py-1 rounded text-gray-800">
-                              {redirect.statusCode}
-                            </span>
-                          </div>
-                          <a
-                            href={redirect.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-700 text-sm break-all flex items-center gap-1"
-                          >
-                            {redirect.url}
-                            <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                          </a>
+                          <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                          <span className="text-gray-800">{flag}</span>
                         </div>
-                      ),
-                    )}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </Section>
-            )}
-          </>
-        )}
+
+              {/* Redirect Analysis */}
+              {report.securityData.redirects.chain.length > 0 && (
+                <Section title="Redirect Analysis">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 bg-blue-50 p-3 rounded">
+                      <span className="font-semibold text-gray-900">
+                        Total Redirects:
+                      </span>
+                      <span className="text-gray-800">
+                        {report.securityData.redirects.totalRedirects}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {report.securityData.redirects.chain.map(
+                        (redirect, index) => (
+                          <div
+                            key={index}
+                            className="bg-gray-50 p-4 rounded border border-gray-200"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-mono bg-blue-100 px-2 py-1 rounded text-blue-800">
+                                {redirect.type.toUpperCase()}
+                              </span>
+                              <span className="text-xs font-mono bg-gray-200 px-2 py-1 rounded text-gray-800">
+                                {redirect.statusCode}
+                              </span>
+                            </div>
+                            <a
+                              href={redirect.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-700 text-sm break-all flex items-center gap-1"
+                            >
+                              {redirect.url}
+                              <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                            </a>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                </Section>
+              )}
+            </>
+          )}
 
         {/* Recommendations */}
         <Section title="Recommendations">

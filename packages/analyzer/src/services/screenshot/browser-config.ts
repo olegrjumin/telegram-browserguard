@@ -41,6 +41,18 @@ const browserArgs = [
   "--mute-audio",
   "--no-first-run",
   "--safebrowsing-disable-auto-update",
+
+  "--ignore-certificate-errors",
+  "--allow-running-insecure-content",
+  "--disable-background-timer-throttling",
+  "--disable-backgrounding-occluded-windows",
+  "--disable-breakpad",
+  "--disable-component-extensions-with-background-pages",
+  "--disable-features=TranslateUI,BlinkGenPropertyTrees",
+  "--disable-ipc-flooding-protection",
+  "--enable-features=NetworkService,NetworkServiceInProcess",
+  "--force-color-profile=srgb",
+  "--window-size=1280,720",
 ];
 
 const viewport = {

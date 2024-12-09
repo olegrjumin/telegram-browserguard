@@ -61,14 +61,33 @@ export class AIRiskAnalyzer {
       }
 
       Risk Analysis Guidelines:
-      1. Domain age < 6 months: HIGH risk, 6-12 months: MEDIUM risk, >1 year: LOW risk
-      2. SSL certificates from known CAs (Let's Encrypt, DigiCert, etc.): MEDIUM-LOW risk
-      3. Multiple redirects (>2) or cross-domain redirects: Increase risk
-      4. Proper email security (SPF, MX): Decrease risk
-      5. Known security verifications in TXT records: Decrease risk
-      6. Hosting in high-risk regions: Increase risk
-      7. Meta or JS redirects: Higher risk than HTTP redirects
-      8. Wildcard domains: Slightly increase risk
+
+      Domain Analysis:
+      1. Domain age risk levels:
+        - <6 months: HIGH risk
+        - 6-12 months: MEDIUM risk
+        - >1 year: LOW risk
+      2. Wildcard domains: Slightly increase risk
+
+      SSL Analysis:
+      3. SSL certificates:
+        - Known CAs (Let's Encrypt, DigiCert): MEDIUM-LOW risk
+        - Unknown/expired: HIGH risk
+
+      DNS Security:
+        4. Email security (SPF, MX): Proper configuration decreases risk
+        5. Security verifications in TXT records: Presence decreases risk
+        6. Hosting location: High-risk regions increase risk
+
+      Redirect Analysis:
+      7. Safe redirect patterns:
+        - HTTP → HTTPS + www redirects: Positive security signal
+        - Same-domain/subdomain redirects: Safe unless >5 hops
+        - CDN/cloud provider redirects: Trusted
+      8. Risky redirect patterns:
+        - Cross-domain: Risk only if different root domains
+        - Redirect risk hierarchy: HTTP 301/302 (safe) → 307/308 → JS → Meta refresh (risky)
+        - Suspicious indicators: IP redirects, mixed TLDs, uncommon ports, circular redirects
     `;
 
     const { content: result, error } = await this.ai.createCompletion(
@@ -120,6 +139,12 @@ export class AIRiskAnalyzer {
     if (!dns) return "DNS analysis data unavailable";
 
     const parts = [];
+
+    // Add error information if present
+    if (dns.result.status === "error" && dns.result.error) {
+      parts.push(`- DNS Resolution: Failed (${dns.result.error.type})`);
+      parts.push(`- Error Details: ${dns.result.error.message}`);
+    }
 
     // Location info
     if (dns.ipGeolocationInfo?.[0]?.geoInfo) {
