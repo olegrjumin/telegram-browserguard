@@ -4,7 +4,7 @@ import { BotContext } from "@/types/session";
 import type { queueAsPromised } from "fastq";
 import fastq from "fastq";
 import { RateLimiter } from "limiter";
-import { extractUrls } from "./url-extract";
+import { getUrlsFromMessageEntities } from "./url-extract";
 
 const userLimiters = new Map<number, RateLimiter>();
 const RATE_LIMIT = 5;
@@ -91,7 +91,9 @@ async function processUrl(task: Task) {
 export const urlHandler =
   () => async (ctx: BotContext, next: () => Promise<void>) => {
     if (ctx.message && "text" in ctx.message && ctx.message.text) {
-      const urls = extractUrls(ctx.message.text);
+      console.log("Message text", ctx.message.text);
+      const urls = getUrlsFromMessageEntities(ctx.message);
+      console.log("Extracted urls:", urls);
       const userId = ctx.message.from.id;
 
       if (urls.length === 0) {
