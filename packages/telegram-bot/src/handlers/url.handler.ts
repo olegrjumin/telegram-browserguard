@@ -15,6 +15,8 @@ interface Task {
   url: string;
 }
 
+const BOT_START_TIME = Date.now();
+
 const queue: queueAsPromised<Task> = fastq.promise(processUrl, 1);
 
 function getUserLimiter(userId: number): RateLimiter {
@@ -113,6 +115,12 @@ async function processUrl(task: Task) {
 export const urlHandler =
   () => async (ctx: BotContext, next: () => Promise<void>) => {
     if (ctx.message && "text" in ctx.message && ctx.message.text) {
+      const messageTime = ctx.message.date * 1000;
+      if (messageTime < BOT_START_TIME) {
+        console.log(`Skipping old message from ${new Date(messageTime)}`);
+        return next();
+      }
+
       console.log("Message text", ctx.message.text);
       const urls = getUrlsFromMessageEntities(ctx.message);
       console.log("Extracted urls:", urls);
