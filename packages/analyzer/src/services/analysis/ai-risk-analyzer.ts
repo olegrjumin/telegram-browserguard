@@ -16,6 +16,20 @@ export class AIRiskAnalyzer {
       Analyze the following website security data and provide a comprehensive risk assessment.
       Focus on identifying potential security risks, trust signals, and provide actionable recommendations.
 
+      IMPORTANT: Authentication Context
+      - Legitimate websites commonly request credentials for login/signup
+      - Consider the following factors when evaluating authentication pages:
+        1. Domain reputation and age
+        2. SSL certificate validity
+        3. Proper security headers and DNS configuration
+        4. Brand consistency and official domain patterns
+      - Known patterns for legitimate auth:
+        - Major platforms (social media, email providers, banks)
+        - Business/enterprise logins
+        - Educational institution portals
+        - Government services
+        - E-commerce sites
+
       REDIRECT ANALYSIS:
       ${this.formatRedirectData(data.redirects)}
 
@@ -62,32 +76,54 @@ export class AIRiskAnalyzer {
 
       Risk Analysis Guidelines:
 
+      Authentication Page Assessment:
+      1. Legitimate authentication indicators:
+         - Valid SSL certificate from trusted CA
+         - Domain age >6 months
+         - Proper DNS configuration with SPF/DMARC
+         - Official domain patterns (login.example.com, auth.example.com)
+         - No suspicious redirects
+      2. Suspicious authentication indicators:
+         - Mixed content warnings
+         - Invalid/expired SSL
+         - Domain age <1 month
+         - Typosquatting patterns
+         - Multiple cross-domain redirects
+
       Domain Analysis:
-      1. Domain age risk levels:
-        - <6 months: HIGH risk
-        - 6-12 months: MEDIUM risk
-        - >1 year: LOW risk
-      2. Wildcard domains: Slightly increase risk
+      3. Domain age risk levels:
+         - <1 month: HIGH risk
+         - 1-6 months: MEDIUM risk
+         - >6 months: LOW risk
+      4. Known legitimate domains: Treat as trusted despite credential requests
+         - Major social platforms
+         - Established business services
+         - Educational institutions (.edu)
+         - Government services (.gov)
+      5. Wildcard domains: Minor risk factor unless combined with other issues
 
       SSL Analysis:
-      3. SSL certificates:
-        - Known CAs (Let's Encrypt, DigiCert): MEDIUM-LOW risk
-        - Unknown/expired: HIGH risk
+      6. SSL certificates:
+         - EV/OV certificates: LOW risk
+         - DV certificates (Let's Encrypt, etc): MEDIUM-LOW risk
+         - Self-signed/expired/invalid: HIGH risk
 
       DNS Security:
-        4. Email security (SPF, MX): Proper configuration decreases risk
-        5. Security verifications in TXT records: Presence decreases risk
-        6. Hosting location: High-risk regions increase risk
+      7. Email security (SPF, DMARC, MX): Proper configuration indicates legitimacy
+      8. Security verifications in TXT records: Presence indicates good practices
+      9. Hosting location: Consider with other factors
 
       Redirect Analysis:
-      7. Safe redirect patterns:
-        - HTTP → HTTPS + www redirects: Positive security signal
-        - Same-domain/subdomain redirects: Safe unless >5 hops
-        - CDN/cloud provider redirects: Trusted
-      8. Risky redirect patterns:
-        - Cross-domain: Risk only if different root domains
-        - Redirect risk hierarchy: HTTP 301/302 (safe) → 307/308 → JS → Meta refresh (risky)
-        - Suspicious indicators: IP redirects, mixed TLDs, uncommon ports, circular redirects
+      10. Safe redirect patterns:
+          - HTTP → HTTPS
+          - www redirects
+          - Same-domain auth endpoints
+          - Known CDN/cloud providers
+      11. Suspicious redirect patterns:
+          - Multiple cross-domain hops
+          - IP address redirects
+          - Mixed TLD chains
+          - Uncommon ports
     `;
 
     const { content: result, error } = await this.ai.createCompletion(
