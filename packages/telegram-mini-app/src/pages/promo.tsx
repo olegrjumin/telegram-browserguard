@@ -8,7 +8,7 @@ const promoMessages = [
   `For the most recent updates and advice on staying safe. <a class="text-blue-600 underline" href='https://www.linkedin.com/company/malwarebytes'>Join Malwarebytes on LinkedIn</a>`,
   `For the latest updates and digital safety tips. <a class="text-blue-600 underline" href='https://twitter.com/malwarebytes'>Follow Malwarebytes on X (formerly Twitter)</a>`,
   `Find out what personal info has been leaked with Malwarebytes' free Digital Footprint Scan. <a class="text-blue-600 underline" href='https://www.malwarebytes.com/digital-footprint'>Check now for free</a>`,
-  `Find out if our personal info might be leaked with Malwarebytes' free Personal Data Remover. <a class="text-blue-600 underline" href='https://www.malwarebytes.com/personal-data-remover'>Clean it up for free</a>`,
+  `Find out if your personal info might be leaked with Malwarebytes' free Personal Data Remover. <a class="text-blue-600 underline" href='https://www.malwarebytes.com/personal-data-remover'>Clean it up for free</a>`,
 ];
 
 export const PromoMessage = () => {
