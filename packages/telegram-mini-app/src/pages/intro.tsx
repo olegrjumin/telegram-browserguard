@@ -1,4 +1,5 @@
 import logo from "./logo.jpg";
+import { PromoMessage } from "./promo";
 
 export function WelcomeScreen() {
   const openBot = () => {
@@ -8,13 +9,14 @@ export function WelcomeScreen() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-2xl mx-auto space-y-6">
+        <PromoMessage />
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <img src={logo} alt="BrowserGuard Bot" className="w-8 h-8" />
+            <div className="p-2 bg-blue-100 rounded-lg flex shrink-0">
+              <img src={logo} alt="Browser Guard Bot" className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Welcome to BrowserGuard Bot! 👋
+              Welcome to Malwarebytes Browser Guard Bot! 👋
             </h1>
           </div>
 
@@ -77,7 +79,7 @@ export function WelcomeScreen() {
             onClick={openBot}
             className="mt-8 w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
           >
-            Install BrowserGuard Bot
+            Install Malwarebytes Browser Guard Bot
           </button>
         </div>
       </div>

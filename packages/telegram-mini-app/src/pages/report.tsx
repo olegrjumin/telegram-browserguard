@@ -1,5 +1,6 @@
 import { AlertCircle, Check, ExternalLink, Server, Shield } from "lucide-react";
 import logo from "./logo.jpg";
+import { PromoMessage } from "./promo";
 import type { UnifiedReport } from "./types";
 
 const Badge = ({
@@ -50,7 +51,7 @@ const Section = ({
   title: string;
   children: React.ReactNode;
 }) => (
-  <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 mb-4">
+  <div className="bg-white rounded-lg shadow-sm p-3 border border-gray-100 mb-4">
     {title && (
       <h2 className="text-xl font-semibold mb-4 text-gray-900">{title}</h2>
     )}
@@ -76,8 +77,8 @@ const HeaderTitle = ({ report }: { report: UnifiedReport }) => {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-4">
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 flex items-center justify-center p-1">
-          <img src={logo} />
+        <div className="p-2 bg-blue-100 rounded-lg flex shrink-0">
+          <img src={logo} alt="Browser Guard Bot" className="w-8 h-8" />
         </div>
         <h1 className="text-lg font-bold text-gray-900">
           Malwarebytes Browser Guard Report
@@ -124,6 +125,7 @@ export const SecurityReport = ({ report }: { report: UnifiedReport }) => {
   return (
     <div className="min-h-screen bg-gray-50 py-2 px-1">
       <div className="container mx-auto max-w-4xl">
+        <PromoMessage />
         {/* Header */}
         <Section title="">
           <div className="space-y-4">
@@ -131,7 +133,7 @@ export const SecurityReport = ({ report }: { report: UnifiedReport }) => {
             <HeaderTitle report={report} />
 
             {/* Risk Cards */}
-            <div className="space-y-2">
+            <div className="space-y-2 flex flex-col lg:space-y-0 lg:space-x-1 lg:flex-row">
               <RiskCard
                 label="Content Risk"
                 level={getContentRiskLevel(report.contentAnalysis.riskScore)}
