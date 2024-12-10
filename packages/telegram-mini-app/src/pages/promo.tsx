@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 const promoMessages = [
   `Malwarebytes is Product of the Year by AV Lab. <a class="text-blue-600 underline" href='https://www.malwarebytes.com/getprotection'>Download for free</a>`,
-  `Malwarebytes Browser Guard is a free browser extension. <a class="text-blue-600 underline" href='https://www.malwarebytes.com/browserguard'>Get protected for free</a>`,
+  `Malwarebytes Browser Guard is also free browser extension available for Chrome, Safari, Firefox and Internet Explorer. <a class="text-blue-600 underline" href='https://www.malwarebytes.com/browserguard'>Get protected for free</a>`,
   `Malwarebytes shares free tips about how to stay safe via e-mail. <a class="text-blue-600 underline" href='https://www.malwarebytes.com/newsletter'>Sign up today for free</a>`,
   `For the latest news and tips to stay safe. <a class="text-blue-600 underline" href='https://www.facebook.com/Malwarebytes'>Follow Malwarebytes on Facebook</a>`,
   `For the most recent updates and advice on staying safe. <a class="text-blue-600 underline" href='https://www.linkedin.com/company/malwarebytes'>Join Malwarebytes on LinkedIn</a>`,
