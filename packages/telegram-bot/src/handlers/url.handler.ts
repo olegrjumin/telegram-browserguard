@@ -89,8 +89,6 @@ async function processUrl(task: Task) {
     } = await getAll(url, userId);
 
     if (imageBuffer) {
-      await ctx.replyWithPhoto({ source: Buffer.from(imageBuffer) });
-
       let message = `🔍 *Analysis Result:*\n\n${getRecommendation(
         contentAnalysisRiskScore,
         securityAnalysisRiskScore
@@ -99,10 +97,15 @@ async function processUrl(task: Task) {
       if (isDevelopment()) {
         message += `🔗 [View detailed analysis (DEV ONLY)](${blobUrl})`;
       }
-      await ctx.reply(message, {
-        parse_mode: "Markdown",
-        ...createMiniAppButton(blobUrl, ctx),
-      });
+
+      await ctx.replyWithPhoto(
+        { source: Buffer.from(imageBuffer) },
+        {
+          caption: message,
+          parse_mode: "Markdown",
+          ...createMiniAppButton(blobUrl, ctx),
+        }
+      );
     }
 
     await ctx.telegram.deleteMessage(ctx.chat!.id, statusMessage.message_id);

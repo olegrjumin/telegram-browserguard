@@ -153,6 +153,26 @@ OpenAI model returns:
 - User receives report link and can preview report summary in Telegram
 - Detailed report available via Mini App interface
 
+### Future Improvements
+
+- Location-based threats
+- Reporters ranking and rewards
+- Proper Phishing detection
+- Interactive mode, where user can guess the score and risk
+- User feedback loop. User can provide feedback on the report or app
+- Options for user report scam / phishing urls themselves just by tagging or replying to the bot
+- MB Products integrations (VPN, Antivirus, etc)
+- More detailed report with more checks
+- Speed improvements for the analysis service
+- AI Agents integrations, where bot can follow the redirect or check some flow for the user.
+- AI Fact checking, for the content
+- i18n support (respond in multiple languages)
+- Integration with other messaging platforms (Discord / Slack)
+- Interactive scenarious (play-through) with bot for users to better understand the threats.
+- Mini App improvements. Making it a full-fledged web app.
+- Own phishing links database
+- Robust Analytics
+
 ### Dependencies upgrade
 
 - Caution do not upgrade express types to v5, use @types/express": "^4.17.21",
