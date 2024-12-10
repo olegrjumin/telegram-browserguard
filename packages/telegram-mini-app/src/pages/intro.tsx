@@ -1,4 +1,4 @@
-import { MessageCircle } from "lucide-react";
+import logo from "./logo.jpg";
 
 export function WelcomeScreen() {
   const openBot = () => {
@@ -11,7 +11,7 @@ export function WelcomeScreen() {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-blue-100 rounded-lg">
-              <MessageCircle className="w-6 h-6 text-blue-600" />
+              <img src={logo} alt="BrowserGuard Bot" className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
               Welcome to BrowserGuard Bot! 👋
@@ -77,7 +77,6 @@ export function WelcomeScreen() {
             onClick={openBot}
             className="mt-8 w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
           >
-            <MessageCircle className="w-5 h-5" />
             Install BrowserGuard Bot
           </button>
         </div>
