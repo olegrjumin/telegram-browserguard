@@ -20,8 +20,6 @@ export interface ContentAnalysis {
   risks: string[];
   isScam: boolean;
   riskScore: number;
-  mainTopics: string[];
-  targetAudience: string;
   trustSignals: TrustSignals;
   riskFactors: RiskFactors;
 }

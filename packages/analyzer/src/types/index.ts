@@ -145,8 +145,6 @@ export interface ContentAnalysis {
   risks: string[];
   isScam: boolean;
   riskScore: number;
-  mainTopics: string[];
-  targetAudience: string;
   trustSignals: TrustSignals;
   riskFactors: RiskFactors;
 }
@@ -155,7 +153,7 @@ export interface UnifiedReport {
   url: string;
   timestamp: number;
   screenshotBase64: string;
-  contentAnalysis: ContentAnalysis;
+  contentAnalysis: ContentAnalysis | null;
   securityData: SecurityAnalysisInput;
   securityAnalysis: RiskAssessment;
 }

@@ -73,7 +73,7 @@ app.post("/screenshot", async (req: Request, res: Response) => {
 
 app.post("/all", async (req: Request, res: Response) => {
   try {
-    const { url, format = "png", quality = 60, userId } = req.body;
+    const { url, format = "jpeg", quality = 50, userId } = req.body;
 
     if (!url) {
       return res.status(400).json({ error: "URL is required" });
@@ -83,64 +83,73 @@ app.post("/all", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "User ID is required" });
     }
 
-    // 1. Take screenshot and analyze content
-    let content;
-    let imageBuffer;
+    const [screenshotResult, securityResults] = await Promise.all([
+      (async () => {
+        try {
+          const screenshotData = await browserManager.takeScreenshot(
+            url,
+            format,
+            quality
+          );
+          return {
+            success: true,
+            content: screenshotData.content,
+            imageBuffer: screenshotData.imageBuffer,
+          };
+        } catch (error) {
+          console.error("Screenshot failed:", error);
+          return {
+            success: false,
+            content: {
+              title: url,
+              metaDescription: "",
+              mainContent: "",
+              links: [url],
+            },
+            imageBuffer: ImageUtils.base64ToBuffer(
+              IMAGES.SCREENSHOT_UNAVAILABLE
+            ),
+          };
+        }
+      })(),
 
-    try {
-      const screenshotResult = await browserManager.takeScreenshot(
-        url,
-        format,
-        quality
-      );
-
-      content = screenshotResult.content;
-      imageBuffer = screenshotResult.imageBuffer;
-    } catch (error) {
-      const fallbackImageBuffer = ImageUtils.base64ToBuffer(
-        IMAGES.SCREENSHOT_UNAVAILABLE
-      );
-      imageBuffer = fallbackImageBuffer;
-
-      content = {
-        title: url,
-        metaDescription: "",
-        mainContent: "",
-        links: [url],
-      };
-    }
-
-    const contentAnalysis = await contentAnalyzer.analyze(content);
-
-    // 2. Perform security analysis
-    const [redirects, dns, domainAge, ssl] = await Promise.all([
-      redirectAnalyzer.analyze(url),
-      getDnsRawData(url),
-      getDomainAgeRaw(url),
-      getSSLInfo(url),
+      Promise.all([
+        redirectAnalyzer.analyze(url),
+        getDnsRawData(url),
+        getDomainAgeRaw(url),
+        getSSLInfo(url),
+      ]),
     ]);
 
-    const securityData: SecurityAnalysisInput = {
-      redirects,
-      dns,
-      domainAge,
-      ssl,
-    };
-    const securityAnalysis = await riskAnalyzer.analyze(securityData);
+    const { content, imageBuffer } = screenshotResult;
+    const [redirects, dns, domainAge, ssl] = securityResults;
 
-    // 3. Create and store unified report
+    const [contentAnalysis, securityAnalysis] = await Promise.all([
+      contentAnalyzer.analyze(content),
+      riskAnalyzer.analyze({
+        redirects,
+        dns,
+        domainAge,
+        ssl,
+      }),
+    ]);
+
     const report: UnifiedReport = {
       url,
       timestamp: Date.now(),
       contentAnalysis,
-      securityData,
+      securityData: {
+        redirects,
+        dns,
+        domainAge,
+        ssl,
+      },
       securityAnalysis,
       screenshotBase64: Buffer.from(imageBuffer).toString("base64"),
     };
 
     const { url: blobUrl } = await storage.storeUnifiedReport(userId, report);
 
-    // 4. Return complete analysis results
     res.json({
       imageBuffer,
       blobUrl,
@@ -148,7 +157,7 @@ app.post("/all", async (req: Request, res: Response) => {
       securityAnalysisRiskScore: securityAnalysis.riskScore,
     });
   } catch (error) {
-    console.error("Screenshot error:", error);
+    console.error("Analysis error:", error);
 
     if (error instanceof Error) {
       if (

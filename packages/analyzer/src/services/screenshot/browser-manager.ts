@@ -210,7 +210,7 @@ export class BrowserManager {
 
   async takeScreenshot(
     url: string,
-    format: SupportedFormat = "png",
+    format: SupportedFormat = "jpeg",
     quality: number = 30
   ) {
     let page = null;
