@@ -35,13 +35,14 @@ function getUserLimiter(userId: number): RateLimiter {
 function createMiniAppButton(url: string, ctx: BotContext) {
   const isGroup = ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
 
+  const buttonText = "View the Malwarebytes Browser Guard Report";
   if (isGroup) {
     return {
       reply_markup: {
         inline_keyboard: [
           [
             {
-              text: "📊 View Analysis",
+              text: buttonText,
               url: `${config.MINI_APP_URL}?url=${encodeURIComponent(url)}`,
             },
           ],
@@ -55,7 +56,7 @@ function createMiniAppButton(url: string, ctx: BotContext) {
       inline_keyboard: [
         [
           {
-            text: "📊 View Detailed Analysis",
+            text: buttonText,
             web_app: {
               url: `${config.MINI_APP_URL}?url=${encodeURIComponent(url)}`,
             },
@@ -89,10 +90,10 @@ async function processUrl(task: Task) {
     } = await getAll(url, userId);
 
     if (imageBuffer) {
-      let message = `🔍 *Analysis Result:*\n\n${getRecommendation(
+      let message = `🔍 *Malwarebytes Browser Guard says:*\n\n${getRecommendation(
         contentAnalysisRiskScore,
         securityAnalysisRiskScore
-      )}\nFor detailed analysis, click button below.\n\n`;
+      )}`;
 
       if (isDevelopment()) {
         message += `🔗 [View detailed analysis (DEV ONLY)](${blobUrl})`;
