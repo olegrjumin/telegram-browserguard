@@ -7,20 +7,20 @@ export function WelcomeScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 py-2 px-1">
       <div className="max-w-2xl mx-auto space-y-6">
         <PromoMessage />
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-blue-100 rounded-lg flex shrink-0">
               <img src={logo} alt="Browser Guard Bot" className="w-8 h-8" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-lg lg:text-2xl font-bold text-gray-900">
               Welcome to Malwarebytes Browser Guard Bot! 👋
             </h1>
           </div>
 
-          <div className="space-y-4">
+          <div className="text-sm lg:text-base space-y-4">
             <p className="text-gray-700">
               I help protect Telegram users by analyzing links shared in chats
               and groups for potential security threats and scams. When someone
@@ -58,7 +58,7 @@ export function WelcomeScreen() {
               <h3 className="text-base font-semibold text-blue-900">
                 You can use me in:
               </h3>
-              <ul className="mt-2 space-y-2 text-blue-800">
+              <ul className="text-sm lg:text-base mt-2 space-y-2 text-blue-800">
                 <li>• Direct messages: Just send a link</li>
                 <li>• Groups: Add me and I'll analyze shared links</li>
                 <li>
@@ -77,7 +77,7 @@ export function WelcomeScreen() {
 
           <button
             onClick={openBot}
-            className="mt-8 w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
+            className="mt-8 w-full bg-blue-600 text-white text-sm lg:text-base py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
           >
             Install Malwarebytes Browser Guard Bot
           </button>
