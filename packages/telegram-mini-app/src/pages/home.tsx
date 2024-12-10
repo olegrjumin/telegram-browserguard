@@ -1,20 +1,8 @@
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { WelcomeScreen } from "./intro";
 import { SecurityReport } from "./report";
 import { UnifiedReport } from "./types";
-
-// const mapToNumberArray = (base64: string) => {
-//   return base64.split(",").map(Number);
-// };
-
-// const getBase64Image = (numbers: number[]) => {
-//   const uint8Array = new Uint8Array(numbers);
-//   let binaryString = "";
-//   uint8Array.forEach((byte) => {
-//     binaryString += String.fromCharCode(byte);
-//   });
-//   return btoa(binaryString);
-// };
 
 export const Home = () => {
   const startParam = new URLSearchParams(window.location.search).get("url");
@@ -37,9 +25,7 @@ export const Home = () => {
         }
 
         const data = await response.json();
-        console.log("🚀 ~ fetchReport ~ data:", data);
 
-        // const base64Image = `data:image/png;base64,${getBase64Image(mapToNumberArray(data.screenshotBase64))}`;
         const base64Image = `data:image/png;base64,${data.screenshotBase64}`;
         setReport({ ...data, screenshotBase64: base64Image });
       } catch (err) {
@@ -53,8 +39,14 @@ export const Home = () => {
       }
     };
 
-    fetchReport();
+    if (startParam) {
+      fetchReport();
+    }
   }, [startParam]);
+
+  if (!startParam) {
+    return <WelcomeScreen />;
+  }
 
   if (loading) {
     return (

@@ -1,15 +1,17 @@
-export interface PageValidity {
-  isValid: boolean;
-  hasContent: boolean;
-  isError: boolean;
-  errorType: string | null;
+// Report
+export interface TrustSignals {
+  isMajorBrand: boolean;
+  hasProperLegal: boolean;
+  professionalContent: boolean;
+  properNavigation: boolean;
+  appropriateSecurity: boolean;
 }
 
-export interface PhishingIndicators {
-  credentialCollection: boolean;
-  brandImpersonation: boolean;
+export interface RiskFactors {
+  credentialRequests: boolean;
+  dataCollection: boolean;
   urgencyTactics: boolean;
-  suspiciousLinks: boolean;
+  suspiciousElements: boolean;
   poorQuality: boolean;
 }
 
@@ -20,8 +22,8 @@ export interface ContentAnalysis {
   riskScore: number;
   mainTopics: string[];
   targetAudience: string;
-  pageValidity: PageValidity;
-  phishingIndicators: PhishingIndicators;
+  trustSignals: TrustSignals;
+  riskFactors: RiskFactors;
 }
 
 export interface UnifiedReport {

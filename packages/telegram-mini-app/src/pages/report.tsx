@@ -1,4 +1,5 @@
 import { AlertCircle, Check, ExternalLink, Server, Shield } from "lucide-react";
+import logo from "./logo.jpg";
 import type { UnifiedReport } from "./types";
 
 const Badge = ({
@@ -71,6 +72,22 @@ const URLLink = ({ url }: { url: string }) => {
   );
 };
 
+const HeaderTitle = ({ report }: { report: UnifiedReport }) => {
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-4">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 flex items-center justify-center p-1">
+          <img src={logo} />
+        </div>
+        <h1 className="text-lg font-bold text-gray-900">
+          Malwarebytes Browser Guard Report
+        </h1>
+      </div>
+      <URLLink url={report.url} />
+    </div>
+  );
+};
+
 const InfoCard = ({
   title,
   children,
@@ -105,21 +122,13 @@ export const SecurityReport = ({ report }: { report: UnifiedReport }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 py-2 px-1">
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
         <Section title="">
           <div className="space-y-4">
             {/* Title and URL */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-4">
-              <div className="flex items-center gap-3 mb-3">
-                <Shield className="w-8 h-8 text-blue-600" />
-                <h1 className="text-lg font-bold text-gray-900">
-                  Security Analysis Report
-                </h1>
-              </div>
-              <URLLink url={report.url} />
-            </div>
+            <HeaderTitle report={report} />
 
             {/* Risk Cards */}
             <div className="space-y-2">
@@ -194,27 +203,35 @@ export const SecurityReport = ({ report }: { report: UnifiedReport }) => {
               </InfoCard>
             )}
 
-            {/* Topics & Audience */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <InfoCard title="Main Topics">
-                <ul className="space-y-2">
-                  {report.contentAnalysis.mainTopics.map((topic, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center gap-2 text-gray-700"
-                    >
-                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span>{topic}</span>
-                    </li>
-                  ))}
-                </ul>
-              </InfoCard>
-              <InfoCard title="Target Audience">
-                <p className="text-gray-700">
-                  {report.contentAnalysis.targetAudience}
-                </p>
-              </InfoCard>
-            </div>
+            {/* Topics & Audience Compact Display */}
+            {false && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Main Topics
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {report.contentAnalysis.mainTopics.map((topic, index) => (
+                      <span
+                        key={index}
+                        className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm"
+                      >
+                        {topic}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Target Audience
+                  </h3>
+                  <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">
+                    {report.contentAnalysis.targetAudience}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </Section>
 

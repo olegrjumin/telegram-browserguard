@@ -1,71 +1,49 @@
 import { Message } from "telegraf/types";
-import { getDomain, getHostname, parse } from "tldts";
+import { parse } from "tldts";
 
-export function isValidDomain(text: string): boolean {
-  const parsed = parse(text);
-  return !!(parsed.domain && parsed.isIcann);
-}
-
-export function normalizeUrl(url: string): string {
-  if (url.startsWith("http://") || url.startsWith("https://")) {
-    return url;
+function normalizeUrl(url: string): string {
+  const normalized = url.toLowerCase().replace(/\/+$/, "");
+  if (normalized.startsWith("http://")) {
+    return normalized.replace("http://", "https://");
   }
-  return `https://${url}`;
-}
-
-export function extractUrls(text: string): string[] {
-  const urls: string[] = [];
-
-  const standardUrlRegex = /(https?:\/\/[^\s]+)/g;
-  const standardUrls = text.match(standardUrlRegex) || [];
-  urls.push(...standardUrls);
-
-  const remainingText = text.replace(standardUrlRegex, "");
-  const wwwUrlRegex = /(?<!@)(www\.[^\s]+)/g;
-  const wwwUrls = remainingText.match(wwwUrlRegex) || [];
-  urls.push(...wwwUrls);
-
-  const words = remainingText
-    .split(/\s+/)
-    .filter(
-      (word) =>
-        word.length > 3 &&
-        word.includes(".") &&
-        !word.startsWith(".") &&
-        !word.endsWith(".") &&
-        !word.includes("@")
-    );
-
-  const bareDomains = words.filter(
-    (word) => isValidDomain(word) && getDomain(word) !== null
-  );
-
-  urls.push(...bareDomains);
-
-  return [...new Set(urls)]
-    .map((url) => {
-      const hostname = getHostname(url) || url;
-      return isValidDomain(hostname) ? normalizeUrl(url) : null;
-    })
-    .filter((url): url is string => url !== null);
+  if (!normalized.startsWith("http")) {
+    return `https://${normalized}`;
+  }
+  return normalized;
 }
 
 export function getUrlsFromMessageEntities(
   message: Message.TextMessage
 ): string[] {
-  const urls: string[] = [];
+  const urls = new Set<string>();
 
   if (message.entities) {
     message.entities.forEach((entity) => {
       if (entity.type === "text_link" && entity.url) {
-        urls.push(entity.url);
+        urls.add(normalizeUrl(entity.url));
+      } else if (entity.type === "url") {
+        const url = message.text.slice(
+          entity.offset,
+          entity.offset + entity.length
+        );
+        urls.add(normalizeUrl(url));
       }
     });
   }
 
-  if (message.text) {
-    urls.push(...extractUrls(message.text));
+  if (urls.size === 0 && message.text) {
+    const matches = message.text.match(
+      /(?:https?:\/\/)?(?:www\.)?[^\s.]+\.[^\s]{2,}|(?:www\.)?[^\s]+\.[^\s]{2,}/g
+    );
+    if (matches) {
+      matches.forEach((url) => {
+        const parsed = parse(url);
+        if (parsed.domain && parsed.isIcann) {
+          urls.add(normalizeUrl(url));
+        }
+      });
+    }
   }
 
-  return [...new Set(urls)];
+  return Array.from(urls);
 }

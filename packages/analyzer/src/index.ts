@@ -1,6 +1,4 @@
 import express, { Request, Response } from "express";
-import { promises as fs } from "node:fs";
-import path from "node:path";
 import { OpenAIClient } from "./lib/openai-client";
 import { config } from "./project-config";
 import { AIRiskAnalyzer } from "./services/analysis/ai-risk-analyzer";
@@ -16,6 +14,8 @@ import { BrowserManager } from "./services/screenshot/browser-manager";
 import { storage } from "./services/storage";
 import { CleanupService } from "./services/storage/vercel-cleanup-service";
 import { SecurityAnalysisInput, UnifiedReport } from "./types";
+import { ImageUtils } from "./utils/image-utils";
+import { IMAGES } from "./utils/images";
 
 const app = express();
 const browserManager = new BrowserManager();
@@ -97,9 +97,10 @@ app.post("/all", async (req: Request, res: Response) => {
       content = screenshotResult.content;
       imageBuffer = screenshotResult.imageBuffer;
     } catch (error) {
-      imageBuffer = await fs.readFile(
-        path.join(__dirname, "./assets/screenshot-unavailable.png")
+      const fallbackImageBuffer = ImageUtils.base64ToBuffer(
+        IMAGES.SCREENSHOT_UNAVAILABLE
       );
+      imageBuffer = fallbackImageBuffer;
 
       content = {
         title: url,
