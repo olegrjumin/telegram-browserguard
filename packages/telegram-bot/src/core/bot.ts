@@ -17,7 +17,8 @@ bot.catch((err, ctx: BotContext) => {
 
 bot.command("start", async (ctx: BotContext) => {
   await ctx.reply(
-    "I help protect Telegram users by analyzing links shared in chats and groups for potential security threats and scams. When someone shares a URL in a conversation, I'll:\n\n" +
+    "Welcome to Malwarebytes BrowserGuard Bot! 👋\n\n" +
+      "I help protect Telegram users by analyzing links shared in chats and groups for potential security threats and scams. When someone shares a URL in a conversation, I'll:\n\n" +
       "📸 Send a preview screenshot of the website\n" +
       "🔍 Analyze the site's content and purpose\n" +
       "🔒 Check SSL certificates and domain age\n" +
@@ -34,7 +35,7 @@ bot.command("start", async (ctx: BotContext) => {
 
 bot.command("help", async (ctx: BotContext) => {
   await ctx.reply(
-    "🛡 *Telegram BrowserGuard Security Analysis*\n\n" +
+    "🛡 *Malwarebytes BrowserGuard Security Analysis*\n\n" +
       "*What I Check:*\n\n" +
       "🔒 *Security Indicators*\n" +
       "• SSL certificate validity and trust\n" +
