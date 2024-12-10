@@ -78,6 +78,8 @@ const getRecommendation = (contentScore: number, technicalScore: number) => {
 
 async function processUrl(task: Task) {
   const { ctx, url } = task;
+  const startTime = Date.now();
+
   try {
     const statusMessage = await ctx.reply(
       `🔄 Malwarebytes Browser Guard is analyzing... ${url}`
@@ -115,6 +117,9 @@ async function processUrl(task: Task) {
   } catch (error) {
     await ctx.reply(`❌ Failed to process: ${url}`);
     console.error(`Error processing URL ${url}:`, error);
+  } finally {
+    const duration = Date.now() - startTime;
+    console.log(`Processing time for ${url}: ${duration}ms`);
   }
 }
 

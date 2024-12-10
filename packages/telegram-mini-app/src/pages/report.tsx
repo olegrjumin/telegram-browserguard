@@ -204,36 +204,6 @@ export const SecurityReport = ({ report }: { report: UnifiedReport }) => {
                 </ul>
               </InfoCard>
             )}
-
-            {/* Topics & Audience Compact Display */}
-            {false && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Main Topics
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {report.contentAnalysis.mainTopics.map((topic, index) => (
-                      <span
-                        key={index}
-                        className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm"
-                      >
-                        {topic}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Target Audience
-                  </h3>
-                  <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">
-                    {report.contentAnalysis.targetAudience}
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
         </Section>
 
