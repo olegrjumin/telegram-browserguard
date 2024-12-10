@@ -31,7 +31,7 @@ app.get("/health", (_, res) => res.json({ status: "ok" }));
 
 app.post("/screenshot", async (req: Request, res: Response) => {
   try {
-    const { url, format = "png", quality = 60 } = req.body;
+    const { url, format = "png", quality = 30 } = req.body;
 
     if (!url) {
       return res.status(400).json({ error: "URL is required" });

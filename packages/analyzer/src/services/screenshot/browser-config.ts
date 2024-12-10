@@ -52,12 +52,11 @@ const browserArgs = [
   "--disable-ipc-flooding-protection",
   "--enable-features=NetworkService,NetworkServiceInProcess",
   "--force-color-profile=srgb",
-  "--window-size=1280,720",
 ];
 
 const viewport = {
-  width: 1280,
-  height: 720,
+  width: 1200,
+  height: 600,
   deviceScaleFactor: 0.75,
 };
 
@@ -110,7 +109,7 @@ async function getBrowserConfig() {
 
 const getScreenshotOptions = (
   format: SupportedFormat = "jpeg",
-  quality = 60
+  quality = 30
 ): ScreenshotOptions => ({
   fullPage: false,
   encoding: "binary",

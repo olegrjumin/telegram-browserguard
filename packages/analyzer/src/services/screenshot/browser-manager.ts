@@ -211,7 +211,7 @@ export class BrowserManager {
   async takeScreenshot(
     url: string,
     format: SupportedFormat = "png",
-    quality: number = 60
+    quality: number = 30
   ) {
     let page = null;
 

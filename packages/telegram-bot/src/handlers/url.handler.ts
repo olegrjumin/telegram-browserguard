@@ -1,5 +1,5 @@
 import { getAll } from "@/core/api";
-import { config, isDevelopment } from "@/project-config";
+import { config } from "@/project-config";
 import { BotContext } from "@/types/session";
 import type { queueAsPromised } from "fastq";
 import fastq from "fastq";
@@ -35,7 +35,7 @@ function getUserLimiter(userId: number): RateLimiter {
 function createMiniAppButton(url: string, ctx: BotContext) {
   const isGroup = ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
 
-  const buttonText = "View the Malwarebytes Browser Guard Report";
+  const buttonText = "View Detailed Report";
   if (isGroup) {
     return {
       reply_markup: {
@@ -73,7 +73,7 @@ const getRecommendation = (contentScore: number, technicalScore: number) => {
     return "⛔️ This link appears to be high risk. Exercise extreme caution.";
   if (avgScore >= 40)
     return "⚠️ This link shows some risk factors. Proceed with caution.";
-  return "✅ This link appears to be relatively safe, but always be vigilant.";
+  return "✅ Safe to proceed.";
 };
 
 async function processUrl(task: Task) {
@@ -90,14 +90,14 @@ async function processUrl(task: Task) {
     } = await getAll(url, userId);
 
     if (imageBuffer) {
-      let message = `🔍 *Malwarebytes Browser Guard says:*\n\n${getRecommendation(
+      let message = `*Malwarebytes Browser Guard says:*\n${getRecommendation(
         contentAnalysisRiskScore,
         securityAnalysisRiskScore
       )}`;
 
-      if (isDevelopment()) {
-        message += `🔗 [View detailed analysis (DEV ONLY)](${blobUrl})`;
-      }
+      // if (isDevelopment()) {
+      //   message += `\n🔗 [View detailed analysis (DEV ONLY)](${blobUrl})`;
+      // }
 
       await ctx.replyWithPhoto(
         { source: Buffer.from(imageBuffer) },
