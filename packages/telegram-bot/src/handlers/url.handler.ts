@@ -79,7 +79,9 @@ const getRecommendation = (contentScore: number, technicalScore: number) => {
 async function processUrl(task: Task) {
   const { ctx, url } = task;
   try {
-    const statusMessage = await ctx.reply(`🔄 Processing: ${url}`);
+    const statusMessage = await ctx.reply(
+      `🔄 Malwarebytes Browser Guard is analyzing... ${url}`
+    );
     const userId = ctx.message!.from.id;
 
     const {
