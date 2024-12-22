@@ -48,7 +48,6 @@ temp/
 .debug/
 
 # Project specific
-screenshots/
 reports/
 .cache/
 

@@ -2,6 +2,8 @@
 
 A security-focused Telegram bot that analyzes shared links and generates comprehensive security reports.
 
+![Screenshot](./screenshots/demo.jpg)
+
 ## Architecture Overview
 
 The project is split into three main services:
