@@ -1,4 +1,4 @@
-# telegram-browserguard
+# Telegram Browser Guard (Beta)
 
 A security-focused Telegram bot that analyzes shared links and generates comprehensive security reports.
 
