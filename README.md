@@ -179,6 +179,13 @@ OpenAI model returns:
 
 - Caution do not upgrade express types to v5, use @types/express": "^4.17.21",
 
+### Deployment
+
+1. Place `id_ed25519` private key file inside scripts folder.
+2. Add permission to the private key file `chmod 600 id_ed25519` and deploy script `chmod 600 deploy.sh`
+3. Create .env file in root directory with the content as in example.env. Fill in the values
+4. Run `./deploy.sh` to deploy the services to the EC2 instance.
+
 ### Docker
 
 Add .env root file and run, as in example
